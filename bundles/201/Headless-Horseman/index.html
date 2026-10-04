@@ -3694,6 +3694,7 @@
   .subtab.active::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--ink);border-radius:3px;}
 
   .grid{flex:1;overflow-y:auto;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;padding:16px;align-items:start;-webkit-overflow-scrolling:touch;}
+  .grid-empty{grid-column:1/-1;text-align:center;color:var(--muted2);padding:48px 16px;font-size:15px;font-weight:600;}
   .card{cursor:pointer;}
   /* padding-bottom hack => misma altura exacta en TODOS los navegadores */
   .card-img{position:relative;width:100%;height:0;padding-bottom:125%;border-radius:12px;background:linear-gradient(170deg,#EEF0F3 0%,#E2E5EA 100%);overflow:hidden;transition:box-shadow .12s;}
@@ -3875,14 +3876,8 @@
 
   <div class="sheet">
     <div class="handle"></div>
-    <div class="cats" id="cats">
-      <button class="cat" data-i18n="cat_all">All</button><button class="cat" data-i18n="cat_avatars">Avatars</button><button class="cat" data-i18n="cat_backgrounds">Backgrounds</button>
-      <button class="cat active" data-i18n="cat_body">Body</button><button class="cat" data-i18n="cat_clothing">Clothing</button><button class="cat" data-i18n="cat_head">Head</button>
-      <button class="filter-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="9" cy="7" r="2.3" fill="#fff"/><circle cx="15" cy="17" r="2.3" fill="#fff"/></svg><span class="filter-badge">2</span></button>
-    </div>
-    <div class="subtabs" id="subtabs">
-      <button class="subtab active" data-i18n="sub_fullbodies">Full Bodies</button><button class="subtab" data-i18n="sub_hair">Hair</button><button class="subtab" data-i18n="sub_heads">Heads</button>
-    </div>
+    <div class="cats" id="cats"></div>
+    <div class="subtabs" id="subtabs"></div>
     <div class="grid" id="grid"></div>
   </div>
 
@@ -4007,8 +4002,8 @@ document.getElementById('plusIcon').src = ASSET.plus;
 
 /* ===== i18n (EN / ES) ===== */
 const I18N = {
-  en:{marketplace:'Marketplace',customize:'Customize',cat_all:'All',cat_avatars:'Avatars',cat_backgrounds:'Backgrounds',cat_body:'Body',cat_clothing:'Clothing',cat_head:'Head',sub_fullbodies:'Full Bodies',sub_hair:'Hair',sub_heads:'Heads',loading:'Loading model…',home:'Home',set_robux:'Set Robux',select_char:'Select your character',my_friends:'My Friends',reset:'Reset',language:'Language',nav_home:'Home',nav_moments:'Moments',nav_chat:'Chat',nav_me:'Me',send_gift:'Send as a Gift',search_people:'Search people',results:'Results',view_details:'View Details Page',favorite:'Favorite',gift:'Gift',buy_item:'Buy item',permanent:'Permanent',subtotal:'Subtotal',plus_benefit:'Plus benefit (10% off on eligible items)',total:'Total',buy:'Buy',saving:'Saving',with_plus:'with Plus',gift_with_plus:'Gift with Plus',to:'To @',manage:'Manage in Customize',details:'Details',purchased:'Purchased!',insufficient:'Not enough Robux',gift_sent:'Gift sent to @',add_friend_ph:'Roblox username',add_btn:'Add',not_found:'User not found'},
-  es:{marketplace:'Mercado',customize:'Personalizar',cat_all:'Todo',cat_avatars:'Avatares',cat_backgrounds:'Fondos',cat_body:'Cuerpo',cat_clothing:'Ropa',cat_head:'Cabeza',sub_fullbodies:'Cuerpos completos',sub_hair:'Cabello',sub_heads:'Cabezas',loading:'Cargando modelo…',home:'Inicio',set_robux:'Establecer Robux',select_char:'Selecciona tu personaje',my_friends:'Mis amigos',reset:'Reiniciar',language:'Idioma',nav_home:'Inicio',nav_moments:'Momentos',nav_chat:'Chat',nav_me:'Yo',send_gift:'Enviar como regalo',search_people:'Buscar personas',results:'Resultados',view_details:'Ver página de detalles',favorite:'Favorito',gift:'Regalar',buy_item:'Comprar artículo',permanent:'Permanente',subtotal:'Subtotal',plus_benefit:'Beneficio Plus (10% de descuento en artículos elegibles)',total:'Total',buy:'Comprar',saving:'Ahorras',with_plus:'con Plus',gift_with_plus:'Regalar con Plus',to:'Para @',manage:'Administrar en Personalizar',details:'Detalles',purchased:'¡Comprado!',insufficient:'Robux insuficientes',gift_sent:'Regalo enviado a @',add_friend_ph:'Usuario de Roblox',add_btn:'Agregar',not_found:'Usuario no encontrado'}
+  en:{marketplace:'Marketplace',customize:'Customize',cat_all:'All',cat_avatars:'Avatars',cat_backgrounds:'Backgrounds',cat_body:'Body',cat_clothing:'Clothing',cat_head:'Head',sub_fullbodies:'Full Bodies',sub_hair:'Hair',sub_heads:'Heads',loading:'Loading model…',home:'Home',set_robux:'Set Robux',select_char:'Select your character',my_friends:'My Friends',reset:'Reset',language:'Language',nav_home:'Home',nav_moments:'Moments',nav_chat:'Chat',nav_me:'Me',send_gift:'Send as a Gift',search_people:'Search people',results:'Results',view_details:'View Details Page',favorite:'Favorite',gift:'Gift',buy_item:'Buy item',permanent:'Permanent',subtotal:'Subtotal',plus_benefit:'Plus benefit (10% off on eligible items)',total:'Total',buy:'Buy',saving:'Saving',with_plus:'with Plus',gift_with_plus:'Gift with Plus',to:'To @',manage:'Manage in Customize',details:'Details',purchased:'Purchased!',insufficient:'Not enough Robux',gift_sent:'Gift sent to @',add_friend_ph:'Roblox username',add_btn:'Add',not_found:'User not found',cat_accessories:'Accessories',cat_animations:'Animations',cat_makeup:'Makeup',sub_head:'Head',sub_face:'Face',sub_neck:'Neck',sub_shoulder:'Shoulder',sub_front:'Front',sub_back:'Back',empty:'Nothing here yet'},
+  es:{marketplace:'Mercado',customize:'Personalizar',cat_all:'Todo',cat_avatars:'Avatares',cat_backgrounds:'Fondos',cat_body:'Cuerpo',cat_clothing:'Ropa',cat_head:'Cabeza',sub_fullbodies:'Cuerpos completos',sub_hair:'Cabello',sub_heads:'Cabezas',loading:'Cargando modelo…',home:'Inicio',set_robux:'Establecer Robux',select_char:'Selecciona tu personaje',my_friends:'Mis amigos',reset:'Reiniciar',language:'Idioma',nav_home:'Inicio',nav_moments:'Momentos',nav_chat:'Chat',nav_me:'Yo',send_gift:'Enviar como regalo',search_people:'Buscar personas',results:'Resultados',view_details:'Ver página de detalles',favorite:'Favorito',gift:'Regalar',buy_item:'Comprar artículo',permanent:'Permanente',subtotal:'Subtotal',plus_benefit:'Beneficio Plus (10% de descuento en artículos elegibles)',total:'Total',buy:'Comprar',saving:'Ahorras',with_plus:'con Plus',gift_with_plus:'Regalar con Plus',to:'Para @',manage:'Administrar en Personalizar',details:'Detalles',purchased:'¡Comprado!',insufficient:'Robux insuficientes',gift_sent:'Regalo enviado a @',add_friend_ph:'Usuario de Roblox',add_btn:'Agregar',not_found:'Usuario no encontrado',cat_accessories:'Accesorios',cat_animations:'Animaciones',cat_makeup:'Maquillaje',sub_head:'Cabeza',sub_face:'Cara',sub_neck:'Cuello',sub_shoulder:'Hombro',sub_front:'Frente',sub_back:'Espalda',empty:'Nada aquí todavía'}
 };
 let LANG='en';
 const T = k => (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k;
@@ -4033,19 +4028,65 @@ const ITEMS = [
   { name:"Dark Knight", creator:"Roblox", price:"9,800", img:null },
 ];
 const grid = document.getElementById('grid');
-function renderGridCards(){
-  grid.innerHTML = ITEMS.map((it,i) => `
+
+/* ===== Categorías y sub-tabs dinámicas (como Roblox real) ===== */
+const FILTER_BTN = `<button class="filter-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="9" cy="7" r="2.3" fill="#fff"/><circle cx="15" cy="17" r="2.3" fill="#fff"/></svg><span class="filter-badge">2</span></button>`;
+const CATS = [
+  {id:'all',i18n:'cat_all',subs:[]},
+  {id:'avatars',i18n:'cat_avatars',subs:[]},
+  {id:'backgrounds',i18n:'cat_backgrounds',subs:[]},
+  {id:'body',i18n:'cat_body',subs:[['fullbodies','sub_fullbodies'],['hair','sub_hair'],['heads','sub_heads']]},
+  {id:'clothing',i18n:'cat_clothing',subs:[]},
+  {id:'accessories',i18n:'cat_accessories',subs:[['head','sub_head'],['face','sub_face'],['neck','sub_neck'],['shoulder','sub_shoulder'],['front','sub_front'],['back','sub_back']]},
+  {id:'animations',i18n:'cat_animations',subs:[]},
+  {id:'makeup',i18n:'cat_makeup',subs:[]},
+];
+/* items por "categoria.subtab" */
+const CATALOG = {
+  'body.fullbodies': ITEMS,
+  'accessories.head': [
+    { name:"Valkyrie Helm", creator:"Roblox", price:"250,000", full:true, img:"https://tr.rbxcdn.com/180DAY-33ebc9fedab2e19a669b6686ad7a656b/420/420/Hat/Webp/noFilter" },
+    { name:"Violet Valkyrie", creator:"Roblox", price:"50,000", full:true, img:"https://tr.rbxcdn.com/180DAY-431eceb5d6471af8a0f68624fc9d3d08/420/420/Hat/Webp/noFilter" },
+    { name:"8-Bit Royal Crown", creator:"Roblox", price:"26,880", full:true, img:"https://tr.rbxcdn.com/180DAY-033fcdc594f17b089eaf2bcd57be171a/420/420/Hat/Webp/noFilter" },
+    { name:"Poisoned Horns of the Toxic Wasteland", creator:"Roblox", price:"1,399,995", full:true, img:"https://tr.rbxcdn.com/180DAY-b06f512bdce9ecb993282ce2174cc77f/420/420/Hat/Webp/noFilter" },
+    { name:"Flaming Pink Horned Helmet", creator:"Roblox", price:"5,999", full:true, img:"https://tr.rbxcdn.com/180DAY-93c85248dc75197466232ab1c7ac15c5/420/420/Hat/Webp/noFilter" },
+    { name:"Frozen Horns of the Frigid Planes", creator:"Roblox", price:"2,170,000", full:true, img:"https://tr.rbxcdn.com/180DAY-bb9e33fdb20f13796b681c005d04b73f/420/420/Hat/Webp/noFilter" },
+  ],
+};
+let currentCat='body', currentSub='fullbodies', curItems=[];
+const catsEl=document.getElementById('cats'), subtabsEl=document.getElementById('subtabs');
+
+function renderCats(){
+  catsEl.innerHTML = CATS.map(c=>`<button class="cat${c.id===currentCat?' active':''}" data-cat="${c.id}">${T(c.i18n)}</button>`).join('') + FILTER_BTN;
+  catsEl.querySelectorAll('.cat').forEach(b=>b.addEventListener('click',()=>{
+    currentCat=b.dataset.cat;
+    const cat=CATS.find(x=>x.id===currentCat);
+    currentSub = cat.subs.length ? cat.subs[0][0] : null;
+    renderCats(); renderSubs(); renderGridItems();
+  }));
+}
+function renderSubs(){
+  const cat=CATS.find(x=>x.id===currentCat);
+  if(!cat.subs.length){ subtabsEl.style.display='none'; subtabsEl.innerHTML=''; return; }
+  subtabsEl.style.display='';
+  subtabsEl.innerHTML = cat.subs.map(([sid,key])=>`<button class="subtab${sid===currentSub?' active':''}" data-sub="${sid}">${T(key)}</button>`).join('');
+  subtabsEl.querySelectorAll('.subtab').forEach(b=>b.addEventListener('click',()=>{ currentSub=b.dataset.sub; renderSubs(); renderGridItems(); }));
+}
+function renderGridItems(){
+  currentItem=null; hideEquip();
+  curItems = CATALOG[currentCat+'.'+currentSub] || [];
+  if(!curItems.length){ grid.innerHTML=`<div class="grid-empty">${T('empty')}</div>`; return; }
+  grid.innerHTML = curItems.map((it,i)=>`
     <div class="card" data-i="${i}">
-      <div class="card-img">${it.img ? `<img src="${it.img}" alt="${it.name}">` : ``}<button class="details-btn">${T('details')}</button></div>
+      <div class="card-img">${it.img?`<img src="${it.img}" alt="${it.name}">`:``}<button class="details-btn">${T('details')}</button></div>
       <div class="card-name">${it.name}</div>
       <div class="card-creator">${it.creator} ${VERIFIED}</div>
       <div class="card-price"><img src="${ASSET.robux}" alt="R$"> ${it.price}</div>
-    </div>
-  `).join('');
-  grid.querySelectorAll('.card').forEach((card,i) => card.addEventListener('click', (e) => {
+    </div>`).join('');
+  grid.querySelectorAll('.card').forEach((card,i)=>card.addEventListener('click',(e)=>{
     if(e.target.classList.contains('details-btn')) return;
-    const wasActive = card.classList.contains('active');
-    grid.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    const wasActive=card.classList.contains('active');
+    grid.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
     if(!wasActive){ card.classList.add('active'); currentItem=i; showEquip(i); }
     else { currentItem=null; hideEquip(); }
   }));
@@ -4056,7 +4097,7 @@ const purchased = new Set();
 let currentItem = null;
 function renderEquipBuy(i){
   if(purchased.has(i)){ equipBuy.classList.add('owned'); equipBuy.textContent=T('manage'); }
-  else { equipBuy.classList.remove('owned'); equipBuy.innerHTML = `<img src="${ASSET.robux}" alt="R$"><span>${ITEMS[i].price}</span>`; }
+  else { equipBuy.classList.remove('owned'); equipBuy.innerHTML = `<img src="${ASSET.robux}" alt="R$"><span>${curItems[i].price}</span>`; }
 }
 function showEquip(i){ renderEquipBuy(i); equipBar.classList.add('show'); }
 function hideEquip(){ equipBar.classList.remove('show'); closeMore(); }
@@ -4074,31 +4115,33 @@ const buyOverlay=document.getElementById('buyOverlay'), buyModal=document.getEle
 let giftMode=false, giftRecipient='';
 function openBuy(item, gift=false, recipient=''){
   giftMode=gift; giftRecipient=recipient;
-  const disc = parseNum(item.price);          // precio actual (YA con 10% off)
-  const orig = Math.round(disc/0.9);           // precio original (sin descuento)
-  const benefit = orig - disc;                 // ahorro Plus
+  const price = parseNum(item.price);
+  // item.full => el precio dado es el ORIGINAL (sin descuento); si no, ya trae el 10% off
+  const original   = item.full ? price : Math.round(price/0.9);
+  const discounted = item.full ? Math.round(price*0.9) : price;
+  const benefit = original - discounted;
   const f = n => n.toLocaleString('en-US');
   const t=document.getElementById('buyThumb');
   if(item.img){ t.src=item.img; t.style.display=''; } else { t.style.display='none'; }
   document.getElementById('buyName').textContent=item.name;
-  document.getElementById('buyNow').textContent=f(disc);
-  document.getElementById('buyOld').textContent=f(orig);
+  document.getElementById('buyNow').textContent=f(discounted);
+  document.querySelector('.buy-old').style.display='';
+  document.getElementById('buyOld').textContent=f(original);
   document.getElementById('saveAmt').textContent=f(benefit);
-  document.getElementById('subTotal').textContent=f(orig);
+  document.getElementById('subTotal').textContent=f(original);
   document.getElementById('benefitVal').textContent=f(benefit);
-  document.getElementById('totalVal').textContent=f(disc);
-  // modo Gift with Plus
+  document.getElementById('totalVal').textContent=f(discounted);
+  savingBox.style.display=''; savingBox.classList.remove('open');
   document.getElementById('buyTitle').textContent = gift ? T('gift_with_plus') : T('buy_item');
   const giftTo=document.getElementById('giftTo');
   if(gift){ giftTo.textContent=T('to')+recipient; giftTo.style.display='block'; }
   else { giftTo.style.display='none'; }
   const bc=document.getElementById('buyConfirm');
   bc.innerHTML = gift ? `<img src="${ASSET.plus}" class="btn-plus" alt="Plus"> ${T('gift_with_plus')}` : T('buy');
-  savingBox.classList.remove('open');
   buyOverlay.classList.add('open'); buyModal.classList.add('open');
 }
 function closeBuy(){ buyOverlay.classList.remove('open'); buyModal.classList.remove('open'); }
-equipBuy.addEventListener('click', ()=>{ if(currentItem!=null && !purchased.has(currentItem)) openBuy(ITEMS[currentItem]); });
+equipBuy.addEventListener('click', ()=>{ if(currentItem!=null && !purchased.has(currentItem)) openBuy(curItems[currentItem]); });
 document.getElementById('buyClose').addEventListener('click', closeBuy);
 buyOverlay.addEventListener('click', closeBuy);
 document.getElementById('savingHead').addEventListener('click', ()=>savingBox.classList.toggle('open'));
@@ -4108,7 +4151,9 @@ const toastMsg=document.getElementById('toastMsg');
 function showToast(msg){ toastMsg.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>toastEl.classList.remove('show'),2200); }
 document.getElementById('buyConfirm').addEventListener('click', ()=>{
   if(currentItem==null) return;
-  const price = parseNum(ITEMS[currentItem].price);   // precio final (total)
+  const it=curItems[currentItem];
+  const p=parseNum(it.price);
+  const price = it.full ? Math.round(p*0.9) : p;   // lo que se paga de verdad (con Plus)
   let bal = parseNum(robuxInput.value);
   if(bal >= price){                                    // alcanzan -> restar
     bal -= price;
@@ -4160,7 +4205,7 @@ const giftList=document.getElementById('giftList'), giftLabel=document.getElemen
 function friendRow(n){
   return `<div class="friend-row"><img class="friend-pfp" src="${pfp(n)}" alt="${n}" onerror="this.style.opacity=.3"><span class="friend-name">${n}</span><button class="friend-gift" data-name="${n}">Gift</button></div>`;
 }
-function wireGift(){ giftList.querySelectorAll('.friend-gift').forEach(b=>b.addEventListener('click', ()=>{ closeGift(); if(currentItem!=null) openBuy(ITEMS[currentItem], true, b.dataset.name); })); }
+function wireGift(){ giftList.querySelectorAll('.friend-gift').forEach(b=>b.addEventListener('click', ()=>{ closeGift(); if(currentItem!=null) openBuy(curItems[currentItem], true, b.dataset.name); })); }
 function renderFriends(){ giftLabel.textContent=T('my_friends'); giftList.innerHTML=FRIENDS.map(friendRow).join(''); wireGift(); }
 function openGift(){ giftSearch.value=''; renderFriends(); giftOverlay.classList.add('open'); giftSheet.classList.add('open'); }
 function closeGift(){ giftOverlay.classList.remove('open'); giftSheet.classList.remove('open'); }
@@ -4200,7 +4245,7 @@ function applyLang(l){
   document.documentElement.lang = LANG;
   document.querySelectorAll('[data-i18n]').forEach(e=>{ e.textContent = T(e.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach(e=>{ e.placeholder = T(e.dataset.i18nPh); });
-  renderGridCards();
+  renderCats(); renderSubs(); renderGridItems();
   if(currentItem!=null) renderEquipBuy(currentItem);
   if(giftSheet.classList.contains('open')){
     if(giftSearch.value.trim()) giftSearch.dispatchEvent(new Event('input'));
@@ -4210,15 +4255,6 @@ function applyLang(l){
 }
 document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click', ()=>applyLang(b.dataset.lang)));
 applyLang('en');
-
-function wireTabs(sel, cls){
-  const btns = document.querySelectorAll(sel);
-  btns.forEach(b => b.addEventListener('click', () => {
-    if(b.classList.contains('filter-btn')) return;
-    btns.forEach(x => x.classList.remove(cls)); b.classList.add(cls);
-  }));
-}
-wireTabs('#cats .cat','active'); wireTabs('#subtabs .subtab','active');
 
 const overlay = document.getElementById('overlay'), panel = document.getElementById('panel');
 const openPanel=()=>{overlay.classList.add('open');panel.classList.add('open');};
