@@ -3776,10 +3776,17 @@
   .toast .rbx-logo{width:32px;height:32px;flex-shrink:0;}
 
   /* ===== Home friends ===== */
-  .home-friends{display:flex;gap:14px;overflow-x:auto;padding:2px 0 4px;}
-  .home-friend{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;width:66px;cursor:pointer;}
-  .home-friend img{width:58px;height:58px;border-radius:50%;object-fit:cover;background:#E4E6EB;}
+  .home-friends{display:flex;gap:14px;overflow-x:auto;padding:4px 0 4px;}
+  .home-friend{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;width:66px;}
+  .hf-avatar{position:relative;width:58px;height:58px;}
+  .hf-avatar img{width:58px;height:58px;border-radius:50%;object-fit:cover;background:#E4E6EB;}
+  .remove-x{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:#EB4D4D;color:#fff;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;cursor:pointer;padding:0;line-height:1;}
+  .remove-x:active{background:#c93b3b;}
   .home-friend span{font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:66px;text-align:center;}
+  .add-friend{display:flex;gap:8px;margin-top:12px;}
+  .add-friend input{flex:1;background:#F0F1F4;border:none;border-radius:12px;padding:12px 14px;font-size:15px;color:var(--ink);outline:none;font-family:inherit;}
+  .add-friend button{background:var(--blue);color:#fff;border:none;border-radius:12px;padding:0 18px;font-size:15px;font-weight:700;cursor:pointer;flex-shrink:0;}
+  .add-friend button:active{background:#2850dd;}
 
   /* ===== Language toggle ===== */
   .lang-row{display:flex;gap:10px;}
@@ -3966,6 +3973,10 @@
       <div class="char-grid" id="charGrid"></div>
       <div class="section-label" data-i18n="my_friends">My Friends</div>
       <div class="home-friends" id="homeFriends"></div>
+      <div class="add-friend">
+        <input id="addFriendInput" type="text" placeholder="Roblox username" data-i18n-ph="add_friend_ph" autocomplete="off">
+        <button id="addFriendBtn" data-i18n="add_btn">Add</button>
+      </div>
       <div class="section-label" data-i18n="language">Language</div>
       <div class="lang-row">
         <button class="lang-btn" data-lang="en">English</button>
@@ -3996,8 +4007,8 @@ document.getElementById('plusIcon').src = ASSET.plus;
 
 /* ===== i18n (EN / ES) ===== */
 const I18N = {
-  en:{marketplace:'Marketplace',customize:'Customize',cat_all:'All',cat_avatars:'Avatars',cat_backgrounds:'Backgrounds',cat_body:'Body',cat_clothing:'Clothing',cat_head:'Head',sub_fullbodies:'Full Bodies',sub_hair:'Hair',sub_heads:'Heads',loading:'Loading model…',home:'Home',set_robux:'Set Robux',select_char:'Select your character',my_friends:'My Friends',reset:'Reset',language:'Language',nav_home:'Home',nav_moments:'Moments',nav_chat:'Chat',nav_me:'Me',send_gift:'Send as a Gift',search_people:'Search people',results:'Results',view_details:'View Details Page',favorite:'Favorite',gift:'Gift',buy_item:'Buy item',permanent:'Permanent',subtotal:'Subtotal',plus_benefit:'Plus benefit (10% off on eligible items)',total:'Total',buy:'Buy',saving:'Saving',with_plus:'with Plus',gift_with_plus:'Gift with Plus',to:'To @',manage:'Manage in Customize',details:'Details',purchased:'Purchased!',insufficient:'Not enough Robux',gift_sent:'Gift sent to @'},
-  es:{marketplace:'Mercado',customize:'Personalizar',cat_all:'Todo',cat_avatars:'Avatares',cat_backgrounds:'Fondos',cat_body:'Cuerpo',cat_clothing:'Ropa',cat_head:'Cabeza',sub_fullbodies:'Cuerpos completos',sub_hair:'Cabello',sub_heads:'Cabezas',loading:'Cargando modelo…',home:'Inicio',set_robux:'Establecer Robux',select_char:'Selecciona tu personaje',my_friends:'Mis amigos',reset:'Reiniciar',language:'Idioma',nav_home:'Inicio',nav_moments:'Momentos',nav_chat:'Chat',nav_me:'Yo',send_gift:'Enviar como regalo',search_people:'Buscar personas',results:'Resultados',view_details:'Ver página de detalles',favorite:'Favorito',gift:'Regalar',buy_item:'Comprar artículo',permanent:'Permanente',subtotal:'Subtotal',plus_benefit:'Beneficio Plus (10% de descuento en artículos elegibles)',total:'Total',buy:'Comprar',saving:'Ahorras',with_plus:'con Plus',gift_with_plus:'Regalar con Plus',to:'Para @',manage:'Administrar en Personalizar',details:'Detalles',purchased:'¡Comprado!',insufficient:'Robux insuficientes',gift_sent:'Regalo enviado a @'}
+  en:{marketplace:'Marketplace',customize:'Customize',cat_all:'All',cat_avatars:'Avatars',cat_backgrounds:'Backgrounds',cat_body:'Body',cat_clothing:'Clothing',cat_head:'Head',sub_fullbodies:'Full Bodies',sub_hair:'Hair',sub_heads:'Heads',loading:'Loading model…',home:'Home',set_robux:'Set Robux',select_char:'Select your character',my_friends:'My Friends',reset:'Reset',language:'Language',nav_home:'Home',nav_moments:'Moments',nav_chat:'Chat',nav_me:'Me',send_gift:'Send as a Gift',search_people:'Search people',results:'Results',view_details:'View Details Page',favorite:'Favorite',gift:'Gift',buy_item:'Buy item',permanent:'Permanent',subtotal:'Subtotal',plus_benefit:'Plus benefit (10% off on eligible items)',total:'Total',buy:'Buy',saving:'Saving',with_plus:'with Plus',gift_with_plus:'Gift with Plus',to:'To @',manage:'Manage in Customize',details:'Details',purchased:'Purchased!',insufficient:'Not enough Robux',gift_sent:'Gift sent to @',add_friend_ph:'Roblox username',add_btn:'Add',not_found:'User not found'},
+  es:{marketplace:'Mercado',customize:'Personalizar',cat_all:'Todo',cat_avatars:'Avatares',cat_backgrounds:'Fondos',cat_body:'Cuerpo',cat_clothing:'Ropa',cat_head:'Cabeza',sub_fullbodies:'Cuerpos completos',sub_hair:'Cabello',sub_heads:'Cabezas',loading:'Cargando modelo…',home:'Inicio',set_robux:'Establecer Robux',select_char:'Selecciona tu personaje',my_friends:'Mis amigos',reset:'Reiniciar',language:'Idioma',nav_home:'Inicio',nav_moments:'Momentos',nav_chat:'Chat',nav_me:'Yo',send_gift:'Enviar como regalo',search_people:'Buscar personas',results:'Resultados',view_details:'Ver página de detalles',favorite:'Favorito',gift:'Regalar',buy_item:'Comprar artículo',permanent:'Permanente',subtotal:'Subtotal',plus_benefit:'Beneficio Plus (10% de descuento en artículos elegibles)',total:'Total',buy:'Comprar',saving:'Ahorras',with_plus:'con Plus',gift_with_plus:'Regalar con Plus',to:'Para @',manage:'Administrar en Personalizar',details:'Detalles',purchased:'¡Comprado!',insufficient:'Robux insuficientes',gift_sent:'Regalo enviado a @',add_friend_ph:'Usuario de Roblox',add_btn:'Agregar',not_found:'Usuario no encontrado'}
 };
 let LANG='en';
 const T = k => (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k;
@@ -4121,11 +4132,28 @@ document.getElementById('buyConfirm').addEventListener('click', ()=>{
 /* ===== Gift friend picker (usa el proxy para pfps) ===== */
 const PROXY = 'https://roblox-face-fetcher.lovable.app';
 const pfp = n => `${PROXY}/api/public/roblox/${encodeURIComponent(n)}.png`;
-const FRIENDS = ['munfuja','builderman','Roblox','Shedletsky'];   // munfuja + 3
+let FRIENDS = ['munfuja','builderman','Roblox','Shedletsky'];   // munfuja + 3
 
-document.getElementById('homeFriends').innerHTML = FRIENDS.map(n =>
-  `<div class="home-friend"><img src="${pfp(n)}" alt="${n}" onerror="this.style.opacity=.25"><span>${n}</span></div>`
-).join('');
+function renderHomeFriends(){
+  const el=document.getElementById('homeFriends');
+  el.innerHTML = FRIENDS.map(n=>`
+    <div class="home-friend">
+      <div class="hf-avatar"><img src="${pfp(n)}" alt="${n}" onerror="this.style.opacity=.25"><button class="remove-x" data-name="${n}">✕</button></div>
+      <span>${n}</span>
+    </div>`).join('');
+  el.querySelectorAll('.remove-x').forEach(b=>b.addEventListener('click', ()=>{ FRIENDS=FRIENDS.filter(f=>f!==b.dataset.name); renderHomeFriends(); }));
+}
+renderHomeFriends();
+
+async function doAddFriend(){
+  const inp=document.getElementById('addFriendInput'); const name=inp.value.trim();
+  if(!name) return;
+  if(FRIENDS.some(f=>f.toLowerCase()===name.toLowerCase())){ inp.value=''; return; }
+  if(await userExists(name)){ FRIENDS.push(name); renderHomeFriends(); inp.value=''; }
+  else { showToast(T('not_found')); }
+}
+document.getElementById('addFriendBtn').addEventListener('click', doAddFriend);
+document.getElementById('addFriendInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); doAddFriend(); } });
 
 const giftOverlay=document.getElementById('giftOverlay'), giftSheet=document.getElementById('giftSheet');
 const giftList=document.getElementById('giftList'), giftLabel=document.getElementById('giftLabel'), giftSearch=document.getElementById('giftSearch');
