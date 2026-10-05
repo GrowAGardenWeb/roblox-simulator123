@@ -3797,7 +3797,7 @@
   /* ===== Gift sheet (friend picker) ===== */
   .gift-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:100;opacity:0;pointer-events:none;transition:opacity .25s;}
   .gift-overlay.open{opacity:1;pointer-events:auto;}
-  .gift-sheet{position:absolute;left:0;right:0;bottom:0;z-index:105;background:#fff;border-radius:22px 22px 0 0;transform:translateY(100%);transition:transform .32s cubic-bezier(.3,1,.4,1);height:82%;display:flex;flex-direction:column;box-shadow:0 -8px 30px rgba(0,0,0,.2);}
+  .gift-sheet{position:absolute;left:0;right:0;bottom:0;z-index:105;background:#fff;border-radius:22px 22px 0 0;transform:translateY(100%);transition:transform .32s cubic-bezier(.3,1,.4,1),bottom .2s ease;height:auto;max-height:88%;display:flex;flex-direction:column;box-shadow:0 -8px 30px rgba(0,0,0,.2);}
   .gift-sheet.open{transform:translateY(0);}
   .gift-handle{width:40px;height:5px;border-radius:999px;background:#D7DAE0;margin:10px auto 2px;flex-shrink:0;}
   .gift-head{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 10px;flex-shrink:0;}
@@ -3807,7 +3807,7 @@
   .gift-search svg{width:20px;height:20px;color:var(--muted2);flex-shrink:0;}
   .gift-search input{flex:1;border:none;background:none;font-size:16px;color:var(--ink);outline:none;font-family:inherit;}
   .gift-label{font-size:13px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.04em;padding:10px 20px 4px;flex-shrink:0;}
-  .gift-list{overflow-y:auto;padding:0 12px 20px;flex:1;min-height:0;}
+  .gift-list{overflow-y:auto;padding:0 12px 20px;max-height:42vh;}
   .friend-row{display:flex;align-items:center;gap:14px;padding:10px 8px;border-radius:14px;}
   .friend-row:active{background:#F5F6F8;}
   .friend-pfp{width:48px;height:48px;border-radius:50%;object-fit:cover;background:#E4E6EB;flex-shrink:0;}
@@ -3946,9 +3946,9 @@
   </div>
 
   <div class="navbar">
-    <button class="navitem active" id="homeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><span data-i18n="nav_home">Home</span></button>
-    <button class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2.5"/><path d="M11 9.5v5l4-2.5z" fill="currentColor" stroke="none"/></svg><span data-i18n="nav_moments">Moments</span></button>
-    <button class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M5 5h14v10H9l-4 4z"/></svg><span data-i18n="nav_chat">Chat</span></button>
+    <button class="navitem active" id="homeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.8 12 4.5l8 6.3"/><path d="M6 9.8V19h12V9.8"/><path d="M10 19v-3.2a2 2 0 0 1 4 0V19"/></svg><span data-i18n="nav_home">Home</span></button>
+    <button class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><g transform="rotate(14 12 12)"><rect x="5" y="5" width="14" height="14" rx="3.5"/><path d="M10.5 9.2v5.6l4.3-2.8z" fill="currentColor" stroke="none"/></g></svg><span data-i18n="nav_moments">Moments</span></button>
+    <button class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5h12a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-6l-2.5 3v-3H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="11.8" x2="13" y2="11.8"/></svg><span data-i18n="nav_chat">Chat</span></button>
     <button class="navitem"><span class="nav-me"><img id="navMe" alt="Me"></span><span data-i18n="nav_me">Me</span></button>
   </div>
 
@@ -4208,7 +4208,11 @@ function friendRow(n){
 function wireGift(){ giftList.querySelectorAll('.friend-gift').forEach(b=>b.addEventListener('click', ()=>{ closeGift(); if(currentItem!=null) openBuy(curItems[currentItem], true, b.dataset.name); })); }
 function renderFriends(){ giftLabel.textContent=T('my_friends'); giftList.innerHTML=FRIENDS.map(friendRow).join(''); wireGift(); }
 function openGift(){ giftSearch.value=''; renderFriends(); giftOverlay.classList.add('open'); giftSheet.classList.add('open'); }
-function closeGift(){ giftOverlay.classList.remove('open'); giftSheet.classList.remove('open'); }
+function closeGift(){ giftOverlay.classList.remove('open'); giftSheet.classList.remove('open'); giftSheet.style.bottom='0px'; try{giftSearch.blur();}catch(e){} }
+/* el panel solo sube cuando el teclado del cel esta abierto */
+function kbOffset(){ const vv=window.visualViewport; if(!vv) return 0; return Math.max(0, window.innerHeight - vv.height - vv.offsetTop); }
+function liftGift(){ if(giftSheet.classList.contains('open')) giftSheet.style.bottom = kbOffset()+'px'; }
+if(window.visualViewport){ window.visualViewport.addEventListener('resize', liftGift); window.visualViewport.addEventListener('scroll', liftGift); }
 document.getElementById('giftMenuItem').addEventListener('click', ()=>{ closeMore(); openGift(); });
 document.getElementById('giftClose').addEventListener('click', closeGift);
 giftOverlay.addEventListener('click', closeGift);
@@ -4238,6 +4242,8 @@ giftSearch.addEventListener('input', ()=>{
     // si no existe, se queda solo con los amigos
   }, 400);
 });
+giftSearch.addEventListener('focus', ()=>setTimeout(liftGift,250));
+giftSearch.addEventListener('blur', ()=>{ giftSheet.style.bottom='0px'; });
 
 /* ===== Aplicar idioma (EN / ES) ===== */
 function applyLang(l){
